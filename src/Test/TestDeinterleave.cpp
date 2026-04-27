@@ -399,6 +399,11 @@ namespace Test
             result = result && DeinterleaveBgraAutoTest(FUNC4(Simd::Neon::DeinterleaveBgra), FUNC4(SimdDeinterleaveBgra));
 #endif 
 
+#ifdef SIMD_SVE_ENABLE
+        if (Simd::Sve::Enable && TestSve(options))
+            result = result && DeinterleaveBgraAutoTest(FUNC4(Simd::Sve::DeinterleaveBgra), FUNC4(SimdDeinterleaveBgra));
+#endif
+
         return result;
     }
 }
