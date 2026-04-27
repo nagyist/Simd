@@ -3139,6 +3139,11 @@ SIMD_API void SimdInterleaveBgra(const uint8_t * b, size_t bStride, const uint8_
         Neon::InterleaveBgra(b, bStride, g, gStride, r, rStride, a, aStride, width, height, bgra, bgraStride);
     else
 #endif
+#ifdef SIMD_SVE_ENABLE
+    if (Sve::Enable)
+        Sve::InterleaveBgra(b, bStride, g, gStride, r, rStride, a, aStride, width, height, bgra, bgraStride);
+    else
+#endif
         Base::InterleaveBgra(b, bStride, g, gStride, r, rStride, a, aStride, width, height, bgra, bgraStride);
 }
 
