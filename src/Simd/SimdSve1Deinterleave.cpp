@@ -65,6 +65,49 @@ namespace Simd
             else if (v)
                 DeinterleaveUv<0, 1>(uv, uvStride, width, height, u, uStride, v, vStride);
         }
+
+        template <int B, int G, int R> void DeinterleaveBgr(const uint8_t * bgr, size_t bgrStride, size_t width, size_t height,
+            uint8_t * b, size_t bStride, uint8_t * g, size_t gStride, uint8_t * r, size_t rStride)
+        {
+            size_t A = svlen(svuint8_t()), A3 = A * 3;
+            size_t widthA = AlignLo(width, A);
+            const svbool_t body = svwhilelt_b8(size_t(0), A);
+            const svbool_t tail = svwhilelt_b8(widthA, width);
+            for (size_t row = 0; row < height; ++row)
+            {
+                size_t col = 0, offset = 0;
+                for (; col < widthA; col += A, offset += A3)
+                {
+                    svuint8x3_t _bgr = svld3_u8(body, bgr + offset);
+                    if (B) svst1_u8(body, b + col, svget3(_bgr, 0));
+                    if (G) svst1_u8(body, g + col, svget3(_bgr, 1));
+                    if (R) svst1_u8(body, r + col, svget3(_bgr, 2));
+                }
+                if (widthA < width)
+                {
+                    svuint8x3_t _bgr = svld3_u8(tail, bgr + offset);
+                    if (B) svst1_u8(tail, b + col, svget3(_bgr, 0));
+                    if (G) svst1_u8(tail, g + col, svget3(_bgr, 1));
+                    if (R) svst1_u8(tail, r + col, svget3(_bgr, 2));
+                }
+                bgr += bgrStride;
+                if (B) b += bStride;
+                if (G) g += gStride;
+                if (R) r += rStride;
+            }
+        }
+
+        void DeinterleaveBgr(const uint8_t * bgr, size_t bgrStride, size_t width, size_t height,
+            uint8_t * b, size_t bStride, uint8_t * g, size_t gStride, uint8_t * r, size_t rStride)
+        {
+            if (b && g && r) DeinterleaveBgr<1, 1, 1>(bgr, bgrStride, width, height, b, bStride, g, gStride, r, rStride);
+            else if (b && g) DeinterleaveBgr<1, 1, 0>(bgr, bgrStride, width, height, b, bStride, g, gStride, r, rStride);
+            else if (b && r) DeinterleaveBgr<1, 0, 1>(bgr, bgrStride, width, height, b, bStride, g, gStride, r, rStride);
+            else if (g && r) DeinterleaveBgr<0, 1, 1>(bgr, bgrStride, width, height, b, bStride, g, gStride, r, rStride);
+            else if (b) DeinterleaveBgr<1, 0, 0>(bgr, bgrStride, width, height, b, bStride, g, gStride, r, rStride);
+            else if (g) DeinterleaveBgr<0, 1, 0>(bgr, bgrStride, width, height, b, bStride, g, gStride, r, rStride);
+            else if (r) DeinterleaveBgr<0, 0, 1>(bgr, bgrStride, width, height, b, bStride, g, gStride, r, rStride);
+        }
     }
 #endif
 }
