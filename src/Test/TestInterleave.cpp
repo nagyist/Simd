@@ -202,6 +202,11 @@ namespace Test
             result = result && InterleaveBgrAutoTest(FUNC3(Simd::Neon::InterleaveBgr), FUNC3(SimdInterleaveBgr));
 #endif
 
+#ifdef SIMD_SVE_ENABLE
+        if (Simd::Sve::Enable && TestSve(options))
+            result = result && InterleaveBgrAutoTest(FUNC3(Simd::Sve::InterleaveBgr), FUNC3(SimdInterleaveBgr));
+#endif
+
         return result;
     }
 
