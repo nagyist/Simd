@@ -446,14 +446,14 @@ SIMD_API void SimdAbsGradientSaturatedSum(const uint8_t * src, size_t srcStride,
         Sse41::AbsGradientSaturatedSum(src, srcStride, width, height, dst, dstStride);
     else
 #endif
-#ifdef SIMD_NEON_ENABLE
-    if (Neon::Enable && width >= Neon::A)
-        Neon::AbsGradientSaturatedSum(src, srcStride, width, height, dst, dstStride);
-    else
-#endif
 #ifdef SIMD_SVE_ENABLE
     if (Sve::Enable)
         Sve::AbsGradientSaturatedSum(src, srcStride, width, height, dst, dstStride);
+    else
+#endif
+#ifdef SIMD_NEON_ENABLE
+    if (Neon::Enable && width >= Neon::A)
+        Neon::AbsGradientSaturatedSum(src, srcStride, width, height, dst, dstStride);
     else
 #endif
 #ifdef SIMD_HVX_ENABLE
@@ -1888,14 +1888,14 @@ SIMD_API void SimdDeinterleaveUv(const uint8_t * uv, size_t uvStride, size_t wid
         Sse41::DeinterleaveUv(uv, uvStride, width, height, u, uStride, v, vStride);
     else
 #endif
-#ifdef SIMD_NEON_ENABLE
-    if (Neon::Enable && width >= Neon::A)
-        Neon::DeinterleaveUv(uv, uvStride, width, height, u, uStride, v, vStride);
-    else
-#endif
 #ifdef SIMD_SVE_ENABLE
     if (Sve::Enable)
         Sve::DeinterleaveUv(uv, uvStride, width, height, u, uStride, v, vStride);
+    else
+#endif
+#ifdef SIMD_NEON_ENABLE
+    if (Neon::Enable && width >= Neon::A)
+        Neon::DeinterleaveUv(uv, uvStride, width, height, u, uStride, v, vStride);
     else
 #endif
         Base::DeinterleaveUv(uv, uvStride, width, height, u, uStride, v, vStride);
@@ -1923,6 +1923,11 @@ SIMD_API void SimdDeinterleaveBgr(const uint8_t * bgr, size_t bgrStride, size_t 
 #ifdef SIMD_SSE41_ENABLE
     if (Sse41::Enable && width >= Sse41::A)
         Sse41::DeinterleaveBgr(bgr, bgrStride, width, height, b, bStride, g, gStride, r, rStride);
+    else
+#endif
+#ifdef SIMD_SVE_ENABLE
+    if (Sve::Enable)
+        Sve::DeinterleaveBgr(bgr, bgrStride, width, height, b, bStride, g, gStride, r, rStride);
     else
 #endif
 #ifdef SIMD_NEON_ENABLE
@@ -1955,6 +1960,11 @@ SIMD_API void SimdDeinterleaveBgra(const uint8_t * bgra, size_t bgraStride, size
 #ifdef SIMD_SSE41_ENABLE
     if (Sse41::Enable && width >= Sse41::A)
         Sse41::DeinterleaveBgra(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
+    else
+#endif
+#ifdef SIMD_SVE_ENABLE
+    if (Sve::Enable)
+        Sve::DeinterleaveBgra(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
     else
 #endif
 #ifdef SIMD_NEON_ENABLE
@@ -3070,14 +3080,14 @@ SIMD_API void SimdInterleaveUv(const uint8_t * u, size_t uStride, const uint8_t 
         Sse41::InterleaveUv(u, uStride, v, vStride, width, height, uv, uvStride);
     else
 #endif
-#ifdef SIMD_NEON_ENABLE
-    if (Neon::Enable && width >= Neon::A)
-        Neon::InterleaveUv(u, uStride, v, vStride, width, height, uv, uvStride);
-    else
-#endif
 #ifdef SIMD_SVE_ENABLE
     if (Sve::Enable)
         Sve::InterleaveUv(u, uStride, v, vStride, width, height, uv, uvStride);
+    else
+#endif
+#ifdef SIMD_NEON_ENABLE
+    if (Neon::Enable && width >= Neon::A)
+        Neon::InterleaveUv(u, uStride, v, vStride, width, height, uv, uvStride);
     else
 #endif
         Base::InterleaveUv(u, uStride, v, vStride, width, height, uv, uvStride);
@@ -3100,6 +3110,11 @@ SIMD_API void SimdInterleaveBgr(const uint8_t * b, size_t bStride, const uint8_t
 #ifdef SIMD_SSE41_ENABLE
     if (Sse41::Enable && width >= Sse41::A)
         Sse41::InterleaveBgr(b, bStride, g, gStride, r, rStride, width, height, bgr, bgrStride);
+    else
+#endif
+#ifdef SIMD_SVE_ENABLE
+    if (Sve::Enable)
+        Sve::InterleaveBgr(b, bStride, g, gStride, r, rStride, width, height, bgr, bgrStride);
     else
 #endif
 #ifdef SIMD_NEON_ENABLE
@@ -3127,6 +3142,11 @@ SIMD_API void SimdInterleaveBgra(const uint8_t * b, size_t bStride, const uint8_
 #ifdef SIMD_SSE41_ENABLE
     if (Sse41::Enable && width >= Sse41::A)
         Sse41::InterleaveBgra(b, bStride, g, gStride, r, rStride, a, aStride, width, height, bgra, bgraStride);
+    else
+#endif
+#ifdef SIMD_SVE_ENABLE
+    if (Sve::Enable)
+        Sve::InterleaveBgra(b, bStride, g, gStride, r, rStride, a, aStride, width, height, bgra, bgraStride);
     else
 #endif
 #ifdef SIMD_NEON_ENABLE
@@ -3997,14 +4017,14 @@ SIMD_API void SimdOperationBinary8u(const uint8_t * a, size_t aStride, const uin
         Sse41::OperationBinary8u(a, aStride, b, bStride, width, height, channelCount, dst, dstStride, type);
     else
 #endif
-#ifdef SIMD_NEON_ENABLE
-    if (Neon::Enable && width*channelCount >= Neon::A)
-        Neon::OperationBinary8u(a, aStride, b, bStride, width, height, channelCount, dst, dstStride, type);
-    else
-#endif
 #ifdef SIMD_SVE_ENABLE
     if (Sve::Enable)
         Sve::OperationBinary8u(a, aStride, b, bStride, width, height, channelCount, dst, dstStride, type);
+    else
+#endif
+#ifdef SIMD_NEON_ENABLE
+    if (Neon::Enable && width*channelCount >= Neon::A)
+        Neon::OperationBinary8u(a, aStride, b, bStride, width, height, channelCount, dst, dstStride, type);
     else
 #endif
 #ifdef SIMD_HVX_ENABLE
@@ -4034,14 +4054,14 @@ SIMD_API void SimdOperationBinary16i(const uint8_t * a, size_t aStride, const ui
         Sse41::OperationBinary16i(a, aStride, b, bStride, width, height, dst, dstStride, type);
     else
 #endif
-#ifdef SIMD_NEON_ENABLE
-    if (Neon::Enable && width >= Neon::HA)
-        Neon::OperationBinary16i(a, aStride, b, bStride, width, height, dst, dstStride, type);
-    else
-#endif
 #ifdef SIMD_SVE_ENABLE
     if (Sve::Enable)
         Sve::OperationBinary16i(a, aStride, b, bStride, width, height, dst, dstStride, type);
+    else
+#endif
+#ifdef SIMD_NEON_ENABLE
+    if (Neon::Enable && width >= Neon::HA)
+        Neon::OperationBinary16i(a, aStride, b, bStride, width, height, dst, dstStride, type);
     else
 #endif
         Base::OperationBinary16i(a, aStride, b, bStride, width, height, dst, dstStride, type);
