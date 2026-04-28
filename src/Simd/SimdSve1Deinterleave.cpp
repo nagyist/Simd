@@ -66,6 +66,8 @@ namespace Simd
                 DeinterleaveUv<0, 1>(uv, uvStride, width, height, u, uStride, v, vStride);
         }
 
+        //-------------------------------------------------------------------------------------------------
+
         template <int B, int G, int R> void DeinterleaveBgr(const uint8_t * bgr, size_t bgrStride, size_t width, size_t height,
             uint8_t * b, size_t bStride, uint8_t * g, size_t gStride, uint8_t * r, size_t rStride)
         {
@@ -109,6 +111,8 @@ namespace Simd
             else if (r) DeinterleaveBgr<0, 0, 1>(bgr, bgrStride, width, height, b, bStride, g, gStride, r, rStride);
         }
 
+        //-------------------------------------------------------------------------------------------------
+
         template <int B, int G, int R, int A> void DeinterleaveBgra(const uint8_t * bgra, size_t bgraStride, size_t width, size_t height,
             uint8_t * b, size_t bStride, uint8_t * g, size_t gStride, uint8_t * r, size_t rStride, uint8_t * a, size_t aStride)
         {
@@ -149,18 +153,18 @@ namespace Simd
             if (b && g && r && a) DeinterleaveBgra<1, 1, 1, 1>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
             else if (b && g && r) DeinterleaveBgra<1, 1, 1, 0>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
             else if (b && g && a) DeinterleaveBgra<1, 1, 0, 1>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
-            else if (b && g)     DeinterleaveBgra<1, 1, 0, 0>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
+            else if (b && g) DeinterleaveBgra<1, 1, 0, 0>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
             else if (b && r && a) DeinterleaveBgra<1, 0, 1, 1>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
-            else if (b && r)     DeinterleaveBgra<1, 0, 1, 0>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
-            else if (b && a)     DeinterleaveBgra<1, 0, 0, 1>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
-            else if (b)          DeinterleaveBgra<1, 0, 0, 0>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
+            else if (b && r) DeinterleaveBgra<1, 0, 1, 0>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
+            else if (b && a) DeinterleaveBgra<1, 0, 0, 1>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
+            else if (b) DeinterleaveBgra<1, 0, 0, 0>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
             else if (g && r && a) DeinterleaveBgra<0, 1, 1, 1>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
-            else if (g && r)     DeinterleaveBgra<0, 1, 1, 0>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
-            else if (g && a)     DeinterleaveBgra<0, 1, 0, 1>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
-            else if (g)          DeinterleaveBgra<0, 1, 0, 0>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
-            else if (r && a)     DeinterleaveBgra<0, 0, 1, 1>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
-            else if (r)          DeinterleaveBgra<0, 0, 1, 0>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
-            else if (a)          DeinterleaveBgra<0, 0, 0, 1>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
+            else if (g && r) DeinterleaveBgra<0, 1, 1, 0>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
+            else if (g && a) DeinterleaveBgra<0, 1, 0, 1>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
+            else if (g) DeinterleaveBgra<0, 1, 0, 0>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
+            else if (r && a) DeinterleaveBgra<0, 0, 1, 1>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
+            else if (r) DeinterleaveBgra<0, 0, 1, 0>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
+            else if (a) DeinterleaveBgra<0, 0, 0, 1>(bgra, bgraStride, width, height, b, bStride, g, gStride, r, rStride, a, aStride);
         }
     }
 #endif
