@@ -35,9 +35,8 @@
     To build the library and test application for Windows 32/64 you can use Microsoft Visual Studio 2022. 
     These project files are in the directory:
     \n`simd/prj/vs2022/.`
-    \n By default the library is built as a DLL (Dynamic Linked Library).
-    You also may build it as a static library. 
-    To do this you must change appropriate property (Configuration Type) of <b>%Simd</b> project and also define macro `SIMD_STATIC` in file:
+    \n For Microsoft Visual Studio by default the library is built as a DLL (Dynamic Linked Library) instead of the rest cases when default type is STATIC library. 
+    To build it as STATIC you must change appropriate property (Configuration Type) of **Simd** project and also uncomment `#define SIMD_STATIC` in file:
     \n`simd/src/Simd/SimdConfig.h.`
 	
 	Also in order to build the library you can use CMake and MinGW:

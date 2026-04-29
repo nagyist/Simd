@@ -41,9 +41,8 @@ The project files are in the directory:
 
 `simd/prj/vs2022/`
 
-By default the library is built as a DLL (Dynamic Linked Library).
-You also may build it as a static library. 
-To do this you must change appropriate property (Configuration Type) of **Simd** project and also uncomment `#define SIMD_STATIC` in file:
+For Microsoft Visual Studio by default the library is built as a DLL (Dynamic Linked Library) instead of the rest cases when default type is STATIC library.
+To build it as STATIC you must change appropriate property (Configuration Type) of **Simd** project and also uncomment `#define SIMD_STATIC` in file:
 
 `simd/src/Simd/SimdConfig.h`
 
