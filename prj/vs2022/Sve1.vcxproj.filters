@@ -44,7 +44,7 @@
     <ClCompile Include="..\..\src\Simd\SimdSve1Interleave.cpp">
       <Filter>Sve1\Convert</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Simd\SimdSve1BgrToGray.cpp">
+    <ClCompile Include="..\..\src\Simd\SimdSve1BgrToRgb.cpp">
       <Filter>Sve1\Convert</Filter>
     </ClCompile>
   </ItemGroup>

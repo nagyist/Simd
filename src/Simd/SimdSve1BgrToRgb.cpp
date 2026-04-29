@@ -34,36 +34,33 @@ namespace Simd
 #ifdef SIMD_SVE_ENABLE
     namespace Sve
     {
-        //SIMD_INLINE svuint8_t BgrToGray(svint8x3_t bgr)
-        //{
-        //    svuint8x8_t lo = vmovn_u16(BgrToGray(UnpackU8<0>(bgr.val[0]), UnpackU8<0>(bgr.val[1]), UnpackU8<0>(bgr.val[2])));
-        //    uint8x8_t hi = vmovn_u16(BgrToGray(UnpackU8<1>(bgr.val[0]), UnpackU8<1>(bgr.val[1]), UnpackU8<1>(bgr.val[2])));
-        //    return vcombine_u8(lo, hi);
-        //}
+        SIMD_INLINE void BgrToRgb(const uint8_t* bgr, uint8_t* rgb, const svbool_t & mask)
+        {
+            svuint8x3_t _bgr = svld3_u8(mask, bgr + offset);
+            svuint8x3_t _rgb;
+            svset3(_rgb, 0, svget3(_bgr, 2));
+            svset3(_rgb, 1, svget3(_bgr, 1));
+            svset3(_rgb, 2, svget3(_bgr, 0));
+            svst3_u8(mask, rgb, _rgb);
+        }
 
-        //void BgrToGray(const uint8_t* bgr, size_t width, size_t height, size_t bgrStride, uint8_t* gray, size_t grayStride)
-        //{
-        //    size_t A = svlen(svuint8_t()), A3 = A * 3;
-        //    size_t widthA = AlignLo(width, A);
-        //    const svbool_t body = svwhilelt_b8(size_t(0), A);
-        //    const svbool_t tail = svwhilelt_b8(widthA, width);
-        //    for (size_t row = 0; row < height; ++row)
-        //    {
-        //        size_t col = 0, offset = 0;
-        //        for (; col < widthA; col += A, offset += A3)
-        //        {
-        //            svuint8x3_t _bgr = svld3_u8(body, bgr + offset);
-        //            svst1_u8(body, gray + col, BgrToGray(_bgr));
-        //        }
-        //        if (widthA < width)
-        //        {
-        //            svuint8x3_t _bgr = svld3_u8(tail, bgr + offset);
-        //            svst1_u8(tail, gray + col, BgrToGray(_bgr));
-        //        }
-        //        bgr += bgrStride;
-        //        gray += grayStride;
-        //    }
-        //}
+        void BgrToRgb(const uint8_t* bgr, size_t width, size_t height, size_t bgrStride, uint8_t* rgb, size_t rgbStride)
+        {
+            size_t A = svlen(svuint8_t()), A3 = A * 3;
+            size_t widthA = AlignLo(width, A), size = width * 3, sizeA = widthA * 3;
+            const svbool_t body = svptrue_b8();
+            const svbool_t tail = svwhilelt_b8(widthA, width);
+            for (size_t row = 0; row < height; ++row)
+            {
+                size_t offset = 0;
+                for (; offset < sizeA; offset += A3)
+                    BgrToRgb(bgr + offset, rgb + offset, main);
+                if (widthA < width)
+                    BgrToRgb(bgr + offset, rgb + offset, tail);
+                bgr += bgrStride;
+                rgb += rgbStride;
+            }
+        }
     }
 #endif
 }

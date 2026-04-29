@@ -632,20 +632,5 @@ namespace Simd
         }
     }
 #endif// SIMD_NEON_ENABLE
-
-#ifdef SIMD_SVE_ENABLE    
-    namespace Sve
-    {
-        //SIMD_INLINE svuint16_t BgrToGray(const svuint32_t& blue, const svuint32_t& green, const svuint32_t& red)
-        //{
-        //    const svuint32_t BLUE_TO_GRAY = svdup_n_u32(Base::BLUE_TO_GRAY_WEIGHT);
-        //    const svuint32_t GREEN_TO_GRAY = svdup_n_u32(Base::GREEN_TO_GRAY_WEIGHT);
-        //    const svuint32_t RED_TO_GRAY = svdup_n_u32(Base::RED_TO_GRAY_WEIGHT);
-        //    const svuint32_t ROUND_TERM = svdup_n_u32(Base::BGR_TO_GRAY_ROUND_TERM);
-        //    const svbool_t mask = svptrue_b8();
-        //    return svshrnb_n_u32(svmla_u32_x(mask, svmla_u32_x(mask, svmla_u32_x(mask, ROUND_TERM, blue, BLUE_TO_GRAY), green, GREEN_TO_GRAY), red, RED_TO_GRAY), Base::BGR_TO_GRAY_AVERAGING_SHIFT);
-        //}
-    }
-#endif
 }
 #endif//__SimdConversion_h__
