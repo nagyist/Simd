@@ -95,7 +95,8 @@
  <li>Wrong assert condition in function Simd::Yuv420pToUyvy422.</li>
  <li>Error in function Base::CpuCacheSize on ARM64 platform.</li>
  <li>Error in NEON optimizations of function DescrInt::Encode32f.</li>
- <li>Error in AVX-512BW optimizations of function ImageSaveToMemory (BMP image, small image size).</li>
+ <li>Error in AVX2, AVX-512BW optimizations of function ImageSaveToMemory (BMP, JPEG formats, 8, 32 bit, small width).</li>
+ <li>Error in AVX2 optimizations of function ImageLoadFromMemory (JPEG formats, 8, 32 bit, small width).</li>
 </ul>
 
 <h4>Test framework</h4>
