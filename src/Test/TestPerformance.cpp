@@ -331,7 +331,7 @@ namespace Test
         if (enable.hvx) Add(Cond(s.hvx, s.hvx), d.hvx);
     }
 
-	static void AddHeader(Table & table, const StatisticNames & names, const StatisticEnable & enable, bool align)
+	static void AddHeader(Table & table, const StatisticNames & names, const StatisticEnable & enable, bool prev, bool align)
 	{
 		size_t col = 0, last = 0;
         for (size_t i = 0; i < enable.Size(); ++i)
@@ -344,12 +344,15 @@ namespace Test
         for (size_t i = 2; i < enable.Size(); ++i)
             if (enable[1] && enable[i])
                 table.SetHeader(col++, String(names[1].brief) + "/" + names[i].brief, i == last, Table::Right);
-        for (size_t i = 2, p = 1; i < enable.Size(); ++i)
+        if (prev)
         {
-            if (enable[p] && enable[i])
-                table.SetHeader(col++, names[p].brief + String("/") + names[i].brief, i == last, Table::Right);
-            if (enable[i])
-                p = i;
+            for (size_t i = 2, p = 1; i < enable.Size(); ++i)
+            {
+                if (enable[p] && enable[i])
+                    table.SetHeader(col++, names[p].brief + String("/") + names[i].brief, i == last, Table::Right);
+                if (enable[i])
+                    p = i;
+            }
         }
 		if (align)
 		{
@@ -359,7 +362,7 @@ namespace Test
 		}
 	}
 
-    template <class Value> static void AddRow(Table & table, size_t row, const String & name, const Statistic<Value> & statistic, const StatisticEnable & enable, bool align, double timeMax)
+    template <class Value> static void AddRow(Table & table, size_t row, const String & name, const Statistic<Value> & statistic, const StatisticEnable & enable, bool prev, bool align, double timeMax)
     {
         const int V = (timeMax > 0.001 ? 3 : (timeMax > 0.0001 ? 1 : 2)), R = 2;
         size_t col = 0;
@@ -370,12 +373,15 @@ namespace Test
         for (size_t i = 2; i < statistic.Size(); ++i)
             if (enable[1] && enable[i])
                 table.SetCell(col++, row, ToString(Test::Relation(statistic[1].first, statistic[i].first), R, false));
-        for (size_t i = 2, p = 1; i < statistic.Size(); ++i)
+        if (prev)
         {
-            if (enable[p] && enable[i])
-                table.SetCell(col++, row, ToString(Test::Relation(Previous(&statistic.simd, i).first, statistic[i].first), R, false));
-            if (enable[i])
-                p = i;
+            for (size_t i = 2, p = 1; i < statistic.Size(); ++i)
+            {
+                if (enable[p] && enable[i])
+                    table.SetCell(col++, row, ToString(Test::Relation(Previous(&statistic.simd, i).first, statistic[i].first), R, false));
+                if (enable[i])
+                    p = i;
+            }
         }
         if (align)
         {
@@ -424,13 +430,13 @@ namespace Test
         for (size_t i = 0; i < enable.Size(); ++i)
             if (enable[i])
                 size++;
-        TablePtr table(new Table(1 + size + (enable[1] ? size - 2 : 0) + (size > 2 ? size - 2: 0) + (align ? size : 0), 1 + functions.size()));
-        AddHeader(*table, names, enable, align);
+        TablePtr table(new Table(1 + size + (enable[1] ? size - 2 : 0) + (size > 3 ? size - 2: 0) + (align ? size : 0), 1 + functions.size()));
+        AddHeader(*table, names, enable, size > 3, align);
         size_t row = 0;
         table->SetRowProp(row, true, true);
-        AddRow(*table, row++, String("Common, ") + (timeMax < 0.001 ? "us" : "ms"), common, enable, align, timeMax);
+        AddRow(*table, row++, String("Common, ") + (timeMax < 0.001 ? "us" : "ms"), common, enable, size > 3, align, timeMax);
         for (FunctionStatisticMap::const_iterator it = functions.begin(); it != functions.end(); ++it)
-            AddRow(*table, row++, it->first, it->second, enable, align, timeMax);
+            AddRow(*table, row++, it->first, it->second, enable, size > 3, align, timeMax);
         return table;
     }
 
