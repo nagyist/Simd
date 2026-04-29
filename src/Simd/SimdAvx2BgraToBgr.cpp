@@ -24,6 +24,7 @@
 #include "Simd/SimdStore.h"
 #include "Simd/SimdMemory.h"
 #include "Simd/SimdConst.h"
+#include "Simd/SimdSse41.h"
 
 namespace Simd
 {
@@ -117,7 +118,7 @@ namespace Simd
 
         template <bool align> void BgraToRgba(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgba, size_t rgbaStride)
         {
-            assert(width >= A);
+            assert(width >= F);
             if (align)
                 assert(Aligned(bgra) && Aligned(bgraStride) && Aligned(rgba) && Aligned(rgbaStride));
 
@@ -137,11 +138,13 @@ namespace Simd
 
         void BgraToRgba(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgba, size_t rgbaStride)
         {
-            if (Aligned(bgra) && Aligned(bgraStride) && Aligned(rgba) && Aligned(rgbaStride))
+            if (width < F)
+                Sse41::BgraToRgba(bgra, width, height, bgraStride, rgba, rgbaStride);
+            else if (Aligned(bgra) && Aligned(bgraStride) && Aligned(rgba) && Aligned(rgbaStride))
                 BgraToRgba<true>(bgra, width, height, bgraStride, rgba, rgbaStride);
             else
                 BgraToRgba<false>(bgra, width, height, bgraStride, rgba, rgbaStride);
         }
     }
-#endif// SIMD_AVX2_ENABLE
+#endif
 }

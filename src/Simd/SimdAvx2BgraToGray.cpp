@@ -112,6 +112,7 @@ namespace Simd
 
         template <bool align> void RgbaToGray(const uint8_t* rgba, size_t width, size_t height, size_t rgbaStride, uint8_t* gray, size_t grayStride)
         {
+            assert(width >= A);
             if (align)
                 assert(Aligned(rgba) && Aligned(rgbaStride) && Aligned(gray) && Aligned(grayStride));
 

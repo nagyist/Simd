@@ -189,5 +189,5 @@ namespace Simd
                 BgraToRgba<false>(bgra, width, height, bgraStride, rgba, rgbaStride);
         }
     }
-#endif// SIMD_AVX512BW_ENABLE
+#endif
 }
