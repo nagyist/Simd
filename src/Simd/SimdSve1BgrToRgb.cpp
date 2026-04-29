@@ -37,10 +37,7 @@ namespace Simd
         SIMD_INLINE void BgrToRgb(const uint8_t* bgr, uint8_t* rgb, const svbool_t & mask)
         {
             svuint8x3_t _bgr = svld3_u8(mask, bgr);
-            svuint8x3_t _rgb;
-            svset3(_rgb, 0, svget3(_bgr, 2));
-            svset3(_rgb, 1, svget3(_bgr, 1));
-            svset3(_rgb, 2, svget3(_bgr, 0));
+            svuint8x3_t _rgb = svcreate3_u8(svget3(_bgr, 2), svget3(_bgr, 1), svget3(_bgr, 0));
             svst3_u8(mask, rgb, _rgb);
         }
 
