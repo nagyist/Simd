@@ -95,9 +95,9 @@
  <li>Wrong assert condition in function Simd::Yuv420pToUyvy422.</li>
  <li>Error in function Base::CpuCacheSize on ARM64 platform.</li>
  <li>Error in NEON optimizations of function DescrInt::Encode32f.</li>
- <li>Error in AVX2, AVX-512BW optimizations of function BgraToRgba (small width, call from Avx512bw::ImageSaveToMemory, Avx512bw::ImageLoadFromMemory).</li>
- <li>Error in AVX2 optimizations of function RgbaToGray (small width, call from Avx2::ImageSaveToMemory, Avx2::ImageLoadFromMemory).</li>
- <li>Error in AVX2 optimizations of function BgrToRgb (small width, call from Avx2::ImageSaveToMemory, Avx2::ImageLoadFromMemory).</li>
+ <li>Error in AVX2, AVX-512BW optimizations of function BgraToRgba (small width, internal call from ImageSaveToMemory, ImageLoadFromMemory).</li>
+ <li>Error in SSE4.1, AVX2 optimizations of function RgbaToGray (small width, internal call from ImageSaveToMemory, ImageLoadFromMemory).</li>
+ <li>Error in AVX2 optimizations of function BgrToRgb (small width, internal call from ImageSaveToMemory, ImageLoadFromMemory).</li>
 </ul>
 
 <h4>Test framework</h4>
