@@ -63,7 +63,7 @@ namespace Simd
         void BgraToBgr(const uint8_t * bgra, size_t width, size_t height, size_t bgraStride, uint8_t * bgr, size_t bgrStride)
         {
             if (width < A)
-                Base::BgraToRgb(bgra, width, height, bgraStride, rgb, rgbStride);
+                Base::BgraToBgr(bgra, width, height, bgraStride, bgr, bgrStride);
             else if (Aligned(bgra) && Aligned(bgraStride) && Aligned(bgr) && Aligned(bgrStride))
                 BgraToBgr<true>(bgra, width, height, bgraStride, bgr, bgrStride);
             else
@@ -105,7 +105,9 @@ namespace Simd
 
         void BgraToRgb(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgb, size_t rgbStride)
         {
-            if (Aligned(bgra) && Aligned(bgraStride) && Aligned(rgb) && Aligned(rgbStride))
+            if (width < A)
+                Base::BgraToRgb(bgra, width, height, bgraStride, rgb, rgbStride);
+            else if (Aligned(bgra) && Aligned(bgraStride) && Aligned(rgb) && Aligned(rgbStride))
                 BgraToRgb<true>(bgra, width, height, bgraStride, rgb, rgbStride);
             else
                 BgraToRgb<false>(bgra, width, height, bgraStride, rgb, rgbStride);
