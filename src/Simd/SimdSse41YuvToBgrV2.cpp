@@ -179,6 +179,7 @@ namespace Simd
         template <bool align, class T> void Yuv444pToBgrV2(const uint8_t* y, size_t yStride, const uint8_t* u, size_t uStride, const uint8_t* v, size_t vStride,
             size_t width, size_t height, uint8_t* bgr, size_t bgrStride)
         {
+            assert(width >= A);
             if (align)
             {
                 assert(Aligned(y) && Aligned(yStride) && Aligned(u) && Aligned(uStride));
