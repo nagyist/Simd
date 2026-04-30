@@ -87,7 +87,7 @@ namespace Simd
                 BgraToBgr<false>(bgra, width, height, bgraStride, bgr, bgrStride);
         }
 
-        //---------------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------------------
 
         template <bool align> void BgraToRgb(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgb, size_t rgbStride)
         {
@@ -127,7 +127,7 @@ namespace Simd
                 BgraToRgb<false>(bgra, width, height, bgraStride, rgb, rgbStride);
         }
 
-        //---------------------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------------------
 
         const __m128i K8_BGRA_TO_RGBA = SIMD_MM_SETR_EPI8(0x2, 0x1, 0x0, 0x3, 0x6, 0x5, 0x4, 0x7, 0xA, 0x9, 0x8, 0xB, 0xE, 0xD, 0xC, 0xF);
 

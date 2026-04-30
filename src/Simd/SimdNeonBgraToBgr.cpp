@@ -70,7 +70,7 @@ namespace Simd
                 BgraToBgr<false>(bgra, width, height, bgraStride, bgr, bgrStride);
         }
 
-        //---------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------------------
 
         template <bool align> SIMD_INLINE void BgraToRgb(const uint8_t* bgra, uint8_t* rgb)
         {
@@ -113,7 +113,7 @@ namespace Simd
                 BgraToRgb<false>(bgra, width, height, bgraStride, rgb, rgbStride);
         }
 
-        //---------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------------------
 
         template <bool align> SIMD_INLINE void BgraToRgba(const uint8_t* bgra, uint8_t* rgba)
         {
@@ -147,11 +147,13 @@ namespace Simd
 
         void BgraToRgba(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgba, size_t rgbaStride)
         {
-            if (Aligned(bgra) && Aligned(bgraStride) && Aligned(rgba) && Aligned(rgbaStride))
+            if (width < A)
+                Base::BgraToRgba(bgra, width, height, bgraStride, rgba, rgbaStride);
+            else if (Aligned(bgra) && Aligned(bgraStride) && Aligned(rgba) && Aligned(rgbaStride))
                 BgraToRgba<true>(bgra, width, height, bgraStride, rgba, rgbaStride);
             else
                 BgraToRgba<false>(bgra, width, height, bgraStride, rgba, rgbaStride);
         }
     }
-#endif// SIMD_NEON_ENABLE
+#endif
 }
