@@ -24,6 +24,7 @@
 #include "Simd/SimdMemory.h"
 #include "Simd/SimdStore.h"
 #include "Simd/SimdYuvToBgr.h"
+#include "Simd/SimdBase.h"
 
 namespace Simd
 {
@@ -91,12 +92,14 @@ namespace Simd
         void Yuv444pToRgbaV2(const uint8_t* y, size_t yStride, const uint8_t* u, size_t uStride, const uint8_t* v, size_t vStride,
             size_t width, size_t height, uint8_t* rgba, size_t rgbaStride, uint8_t alpha, SimdYuvType yuvType)
         {
-            if (Aligned(y) && Aligned(yStride) && Aligned(u) && Aligned(uStride)
+            if(width < A)
+                Base::Yuv444pToRgbaV2(y, yStride, u, uStride, v, vStride, width, height, rgba, rgbaStride, alpha, yuvType);
+            else if (Aligned(y) && Aligned(yStride) && Aligned(u) && Aligned(uStride)
                 && Aligned(v) && Aligned(vStride) && Aligned(rgba) && Aligned(rgbaStride))
                 Yuv444pToRgbaV2<true>(y, yStride, u, uStride, v, vStride, width, height, rgba, rgbaStride, alpha, yuvType);
             else
                 Yuv444pToRgbaV2<false>(y, yStride, u, uStride, v, vStride, width, height, rgba, rgbaStride, alpha, yuvType);
         }
     }
-#endif// SIMD_NEON_ENABLE
+#endif
 }
