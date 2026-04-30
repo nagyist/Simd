@@ -670,7 +670,7 @@ namespace Test
     {
         bool result = true;
 
-        result = result && ImageLoadFromMemoryAutoTest(W, H, View::Bgr24, SimdImageFileJpeg, 100, f1, f2);
+        result = result && ImageLoadFromMemoryAutoTest(W, H, View::Rgb24, SimdImageFileJpeg, 100, f1, f2);
 
         std::vector<View::Format> formats = { View::Gray8, View::Bgr24, View::Bgra32, View::Rgb24, View::Rgba32 };
         for (size_t format = 0; format < formats.size(); format++)

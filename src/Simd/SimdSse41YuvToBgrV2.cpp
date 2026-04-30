@@ -379,6 +379,7 @@ namespace Simd
         template <bool align, class T> void Yuv444pToRgbV2(const uint8_t* y, size_t yStride, const uint8_t* u, size_t uStride, const uint8_t* v, size_t vStride,
             size_t width, size_t height, uint8_t* rgb, size_t rgbStride)
         {
+            assert(width >= A);
             if (align)
             {
                 assert(Aligned(y) && Aligned(yStride) && Aligned(u) && Aligned(uStride));
@@ -420,7 +421,9 @@ namespace Simd
         void Yuv444pToRgbV2(const uint8_t* y, size_t yStride, const uint8_t* u, size_t uStride, const uint8_t* v, size_t vStride,
             size_t width, size_t height, uint8_t* rgb, size_t rgbStride, SimdYuvType yuvType)
         {
-            if (Aligned(y) && Aligned(yStride) && Aligned(u) && Aligned(uStride)
+            if (width < A)
+                Base::Yuv444pToRgbV2(y, yStride, u, uStride, v, vStride, width, height, rgb, rgbStride, yuvType);
+            else if (Aligned(y) && Aligned(yStride) && Aligned(u) && Aligned(uStride)
                 && Aligned(v) && Aligned(vStride) && Aligned(rgb) && Aligned(rgbStride))
                 Yuv444pToRgbV2<true>(y, yStride, u, uStride, v, vStride, width, height, rgb, rgbStride, yuvType);
             else
