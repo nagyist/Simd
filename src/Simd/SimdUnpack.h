@@ -195,5 +195,36 @@ namespace Simd
         }
     }
 #endif //SIMD_AVX512BW_ENABLE
+
+#ifdef SIMD_SVE_ENABLE
+    namespace Sve
+    {
+        template <int part> SIMD_INLINE svuint16_t UnpackU8(svuint8_t a);
+
+        template <> SIMD_INLINE svuint16_t UnpackU8<0>(svuint8_t a)
+        {
+            return svunpklo_u16(a);
+        }
+
+        template <> SIMD_INLINE svuint16_t UnpackU8<1>(svuint8_t a)
+        {
+            return svunpkhi_u16(a);
+        }
+
+        //-------------------------------------------------------------------------------------------------
+
+        template <int part> SIMD_INLINE svuint32_t UnpackU16(svuint16_t a);
+
+        template <> SIMD_INLINE svuint32_t UnpackU16<0>(svuint16_t a)
+        {
+            return svunpklo_u32(a);
+        }
+
+        template <> SIMD_INLINE svuint32_t UnpackU16<1>(svuint16_t a)
+        {
+            return svunpkhi_u32(a);
+        }
+    }
+#endif
 }
-#endif//__SimdUnpack_h__
+#endif

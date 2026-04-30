@@ -41,9 +41,8 @@ The project files are in the directory:
 
 `simd/prj/vs2022/`
 
-By default the library is built as a DLL (Dynamic Linked Library).
-You also may build it as a static library. 
-To do this you must change appropriate property (Configuration Type) of **Simd** project and also uncomment `#define SIMD_STATIC` in file:
+For Microsoft Visual Studio by default the library is built as a DLL (Dynamic Linked Library) instead of the rest cases when default type is STATIC library.
+To build it as STATIC you must change appropriate property (Configuration Type) of **Simd** project and also uncomment `#define SIMD_STATIC` in file:
 
 `simd/src/Simd/SimdConfig.h`
 
@@ -206,7 +205,7 @@ Also you can use parameters:
 * `-tr=2` a number of test execution repeats.
 * `-ts=1` to print statistics of time of tests execution.
 * `-cc=1` to check c++ API.
-* `-de=2` a flags of SIMD extensions which testing are disabled. Base - 1, 2 - SSE4.1/NEON/HVX, 4 - AVX2, 8 - AVX-512BW, 16 - AVX-512VNNI, 32 - AMX-BF16.
+* `-de=2` a flags of SIMD extensions which testing are disabled. Base - 1, 2 - SSE4.1/NEON/HVX, 4 - AVX2/SVE, 8 - AVX-512BW, 16 - AVX-512VNNI, 32 - AMX-BF16.
 * `-wu=100` a time to warm up CPU before testing (in milliseconds).
 * `-pt=1` a boolean flag to pin threads to cpu cores.
 

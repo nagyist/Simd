@@ -162,7 +162,6 @@ namespace Simd
 
         template <bool align> void BgraToRgba(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgba, size_t rgbaStride)
         {
-            assert(width >= A);
             if (align)
                 assert(Aligned(bgra) && Aligned(bgraStride) && Aligned(rgba) && Aligned(rgbaStride));
 
@@ -190,5 +189,5 @@ namespace Simd
                 BgraToRgba<false>(bgra, width, height, bgraStride, rgba, rgbaStride);
         }
     }
-#endif// SIMD_AVX512BW_ENABLE
+#endif
 }

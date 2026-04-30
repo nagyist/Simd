@@ -23,6 +23,7 @@
 */
 #include "Simd/SimdStore.h"
 #include "Simd/SimdMemory.h"
+#include "Simd/SimdBase.h"
 
 namespace Simd
 {
@@ -135,7 +136,9 @@ namespace Simd
 
         void RgbaToGray(const uint8_t* rgba, size_t width, size_t height, size_t rgbaStride, uint8_t* gray, size_t grayStride)
         {
-            if (Aligned(rgba) && Aligned(gray) && Aligned(rgbaStride) && Aligned(grayStride))
+            if(width < A)
+                Base::RgbaToGray(rgba, width, height, rgbaStride, gray, grayStride);
+            else if (Aligned(rgba) && Aligned(gray) && Aligned(rgbaStride) && Aligned(grayStride))
                 RgbaToGray<true>(rgba, width, height, rgbaStride, gray, grayStride);
             else
                 RgbaToGray<false>(rgba, width, height, rgbaStride, gray, grayStride);

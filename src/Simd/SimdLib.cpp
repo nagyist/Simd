@@ -1465,6 +1465,11 @@ SIMD_API void SimdBgrToRgb(const uint8_t *bgr, size_t width, size_t height, size
         Sse41::BgrToRgb(bgr, width, height, bgrStride, rgb, rgbStride);
     else
 #endif
+#ifdef SIMD_SVE_ENABLE
+    if (Sve::Enable)
+        Sve::BgrToRgb(bgr, width, height, bgrStride, rgb, rgbStride);
+    else
+#endif
 #ifdef SIMD_NEON_ENABLE
     if (Neon::Enable && width >= Neon::A)
         Neon::BgrToRgb(bgr, width, height, bgrStride, rgb, rgbStride);

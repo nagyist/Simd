@@ -24,6 +24,7 @@
 #include "Simd/SimdStore.h"
 #include "Simd/SimdMemory.h"
 #include "Simd/SimdConversion.h"
+#include "Simd/SimdBase.h"
 
 namespace Simd
 {
@@ -61,13 +62,15 @@ namespace Simd
 
         void BgraToGray(const uint8_t * bgra, size_t width, size_t height, size_t bgraStride, uint8_t * gray, size_t grayStride)
         {
-            if (Aligned(bgra) && Aligned(gray) && Aligned(bgraStride) && Aligned(grayStride))
+            if(width < HA)
+                Base::BgraToGray(bgra, width, height, bgraStride, gray, grayStride);
+            else if (Aligned(bgra) && Aligned(gray) && Aligned(bgraStride) && Aligned(grayStride))
                 BgraToGray<true>(bgra, width, height, bgraStride, gray, grayStride);
             else
                 BgraToGray<false>(bgra, width, height, bgraStride, gray, grayStride);
         }
 
-        //---------------------------------------------------------------------
+        //-------------------------------------------------------------------------------------------------
 
         SIMD_INLINE uint8x8_t RgbaToGray(uint8x8x4_t rgba)
         {
@@ -100,11 +103,13 @@ namespace Simd
 
         void RgbaToGray(const uint8_t* rgba, size_t width, size_t height, size_t rgbaStride, uint8_t* gray, size_t grayStride)
         {
-            if (Aligned(rgba) && Aligned(gray) && Aligned(rgbaStride) && Aligned(grayStride))
+            if(width < HA)
+                Base::RgbaToGray(rgba, width, height, rgbaStride, gray, grayStride);
+            else if (Aligned(rgba) && Aligned(gray) && Aligned(rgbaStride) && Aligned(grayStride))
                 RgbaToGray<true>(rgba, width, height, rgbaStride, gray, grayStride);
             else
                 RgbaToGray<false>(rgba, width, height, rgbaStride, gray, grayStride);
         }
     }
-#endif// SIMD_NEON_ENABLE
+#endif
 }

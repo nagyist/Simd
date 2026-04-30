@@ -24,6 +24,7 @@
 #include "Simd/SimdStore.h"
 #include "Simd/SimdMemory.h"
 #include "Simd/SimdConst.h"
+#include "Simd/SimdSse41.h"
 
 namespace Simd
 {
@@ -58,7 +59,9 @@ namespace Simd
 
         void BgraToBgr(const uint8_t * bgra, size_t width, size_t height, size_t bgraStride, uint8_t * bgr, size_t bgrStride)
         {
-            if (Aligned(bgra) && Aligned(bgraStride) && Aligned(bgr) && Aligned(bgrStride))
+            if(width < F)
+                Sse41::BgraToBgr(bgra, width, height, bgraStride, bgr, bgrStride);
+            else if (Aligned(bgra) && Aligned(bgraStride) && Aligned(bgr) && Aligned(bgrStride))
                 BgraToBgr<true>(bgra, width, height, bgraStride, bgr, bgrStride);
             else
                 BgraToBgr<false>(bgra, width, height, bgraStride, bgr, bgrStride);
@@ -98,7 +101,9 @@ namespace Simd
 
         void BgraToRgb(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgb, size_t rgbStride)
         {
-            if (Aligned(bgra) && Aligned(bgraStride) && Aligned(rgb) && Aligned(rgbStride))
+            if (width < F)
+                Sse41::BgraToRgb(bgra, width, height, bgraStride, rgb, rgbStride);
+            else if (Aligned(bgra) && Aligned(bgraStride) && Aligned(rgb) && Aligned(rgbStride))
                 BgraToRgb<true>(bgra, width, height, bgraStride, rgb, rgbStride);
             else
                 BgraToRgb<false>(bgra, width, height, bgraStride, rgb, rgbStride);
@@ -117,7 +122,7 @@ namespace Simd
 
         template <bool align> void BgraToRgba(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgba, size_t rgbaStride)
         {
-            assert(width >= A);
+            assert(width >= F);
             if (align)
                 assert(Aligned(bgra) && Aligned(bgraStride) && Aligned(rgba) && Aligned(rgbaStride));
 
@@ -137,11 +142,13 @@ namespace Simd
 
         void BgraToRgba(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgba, size_t rgbaStride)
         {
-            if (Aligned(bgra) && Aligned(bgraStride) && Aligned(rgba) && Aligned(rgbaStride))
+            if (width < F)
+                Sse41::BgraToRgba(bgra, width, height, bgraStride, rgba, rgbaStride);
+            else if (Aligned(bgra) && Aligned(bgraStride) && Aligned(rgba) && Aligned(rgbaStride))
                 BgraToRgba<true>(bgra, width, height, bgraStride, rgba, rgbaStride);
             else
                 BgraToRgba<false>(bgra, width, height, bgraStride, rgba, rgbaStride);
         }
     }
-#endif// SIMD_AVX2_ENABLE
+#endif
 }

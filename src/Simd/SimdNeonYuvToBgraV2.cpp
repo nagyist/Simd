@@ -24,6 +24,7 @@
 #include "Simd/SimdMemory.h"
 #include "Simd/SimdStore.h"
 #include "Simd/SimdYuvToBgr.h"
+#include "Simd/SimdBase.h"
 
 namespace Simd
 {
@@ -436,7 +437,9 @@ namespace Simd
         void Yuv444pToBgraV2(const uint8_t* y, size_t yStride, const uint8_t* u, size_t uStride, const uint8_t* v, size_t vStride,
             size_t width, size_t height, uint8_t* bgra, size_t bgraStride, uint8_t alpha, SimdYuvType yuvType)
         {
-            if (Aligned(y) && Aligned(yStride) && Aligned(u) && Aligned(uStride)
+            if(width < A)
+                Base::Yuv444pToBgraV2(y, yStride, u, uStride, v, vStride, width, height, bgra, bgraStride, alpha, yuvType);
+            else if (Aligned(y) && Aligned(yStride) && Aligned(u) && Aligned(uStride)
                 && Aligned(v) && Aligned(vStride) && Aligned(bgra) && Aligned(bgraStride))
                 Yuv444pToBgraV2<true>(y, yStride, u, uStride, v, vStride, width, height, bgra, bgraStride, alpha, yuvType);
             else

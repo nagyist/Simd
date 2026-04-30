@@ -68,7 +68,7 @@ Library folder's structure</h1>
 The library building for Windows</h1>
 <p >To build the library and test application for Windows 32/64 you can use Microsoft Visual Studio 2022. These project files are in the directory: <br  />
 <code>simd/prj/vs2022/.</code> <br  />
- By default the library is built as a DLL (Dynamic Linked Library). You also may build it as a static library. To do this you must change appropriate property (Configuration Type) of <b>Simd</b> project and also define macro <code>SIMD_STATIC</code> in file: <br  />
+ For Microsoft Visual Studio by default the library is built as a DLL (Dynamic Linked Library) instead of the rest cases when default type is STATIC library. To build it as STATIC you must change appropriate property (Configuration Type) of <b><a class="el" href="namespace_simd.html">Simd</a></b> project and also uncomment <code>#define SIMD_STATIC</code> in file: <br  />
 <code>simd/src/Simd/SimdConfig.h.</code></p>
 <p >Also in order to build the library you can use CMake and MinGW: </p><div class="fragment"><div class="line">mkdir build</div>
 <div class="line">cd build</div>
@@ -154,7 +154,7 @@ Test Framework</h1>
 <li><code>-tr=2</code> a number of test execution repeats.</li>
 <li><code>-ts=1</code> to print statistics of time of tests execution.</li>
 <li><code>-cc=1</code> to check c++ API.</li>
-<li><code>-de=2</code> a flags of SIMD extensions which testing are disabled. Base - 1, 2 - SSE4.1/NEON, 4 - AVX2, 8 - AVX-512BW, 16 - AVX-512VNNI, 32 - AMX-BF16.</li>
+<li><code>-de=2</code> a flags of SIMD extensions which testing are disabled. Base - 1, 2 - SSE4.1/NEON/HVX, 4 - AVX2/SVE, 8 - AVX-512BW, 16 - AVX-512VNNI, 32 - AMX-BF16.</li>
 <li><code>-wu=100</code> a time to warm up CPU before testing (in milliseconds).</li>
 <li><code>-pt=1</code> a boolean flag to pin threads to cpu cores. </li>
 </ul>

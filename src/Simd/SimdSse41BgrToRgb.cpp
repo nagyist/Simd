@@ -23,6 +23,7 @@
 */
 #include "Simd/SimdMemory.h"
 #include "Simd/SimdStore.h"
+#include "Simd/SimdBase.h"
 
 namespace Simd
 {
@@ -70,7 +71,9 @@ namespace Simd
 
         void BgrToRgb(const uint8_t* bgr, size_t width, size_t height, size_t bgrStride, uint8_t* rgb, size_t rgbStride)
         {
-            if (Aligned(bgr) && Aligned(bgrStride) && Aligned(rgb) && Aligned(rgbStride))
+            if (width < A)
+                Base::BgrToRgb(bgr, width, height, bgrStride, rgb, rgbStride);
+            else if (Aligned(bgr) && Aligned(bgrStride) && Aligned(rgb) && Aligned(rgbStride))
                 BgrToRgb<true>(bgr, width, height, bgrStride, rgb, rgbStride);
             else
                 BgrToRgb<false>(bgr, width, height, bgrStride, rgb, rgbStride);

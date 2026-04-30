@@ -670,10 +670,12 @@ namespace Test
     {
         bool result = true;
 
+        result = result && ImageLoadFromMemoryAutoTest(W, H, View::Rgb24, SimdImageFileJpeg, 100, f1, f2);
+
         std::vector<View::Format> formats = { View::Gray8, View::Bgr24, View::Bgra32, View::Rgb24, View::Rgba32 };
         for (size_t format = 0; format < formats.size(); format++)
         {
-            for (int file = (int)SimdImageFileBmp; file <= (int)SimdImageFileBmp; file++)
+            for (int file = (int)SimdImageFilePgmTxt; file <= (int)SimdImageFileBmp; file++)
             {
                 if (file == SimdImageFileJpeg)
                 {

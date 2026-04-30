@@ -78,6 +78,7 @@
  <li>SVE optimizations of function AbsGradientSaturatedSum.</li>
  <li>SVE optimizations of function DeinterleaveUv.</li>
  <li>SVE optimizations of function InterleaveUv.</li>
+ <li>SVE optimizations of function BgrToRgb.</li>
 </ul>
 <h5>Improving</h5>
 <ul>
@@ -94,6 +95,15 @@
  <li>Wrong assert condition in function Simd::Yuv420pToUyvy422.</li>
  <li>Error in function Base::CpuCacheSize on ARM64 platform.</li>
  <li>Error in NEON optimizations of function DescrInt::Encode32f.</li>
+ <li>Error in SSE4.1, AVX2, AVX-512BW, NEON optimizations of function BgraToRgba (small width, internal call from ImageSaveToMemory, ImageLoadFromMemory).</li>
+ <li>Error in SSE4.1, AVX2, NEON optimizations of function RgbaToGray (small width, internal call from ImageSaveToMemory, ImageLoadFromMemory).</li>
+ <li>Error in SSE4.1, AVX2, NEON optimizations of function BgrToRgb (small width, internal call from ImageSaveToMemory, ImageLoadFromMemory).</li>
+ <li>Error in SSE4.1, NEON optimizations of function Yuv444pToBgrV2 (small width, internal call from ImageSaveToMemory, ImageLoadFromMemory).</li>
+ <li>Error in SSE4.1, NEON optimizations of function Yuv444pToBgraV2 (small width, internal call from ImageSaveToMemory, ImageLoadFromMemory).</li>
+ <li>Error in SSE4.1, NEON optimizations of function Yuv444pToRgbV2 (small width, internal call from ImageSaveToMemory, ImageLoadFromMemory).</li>
+ <li>Error in SSE4.1, NEON optimizations of function Yuv444pToRgbaV2 (small width, internal call from ImageSaveToMemory, ImageLoadFromMemory).</li>
+ <li>Error in SSE4.1, AVX2, NEON optimizations of function BgraToBgr (small width, internal call from ImageSaveToMemory, ImageLoadFromMemory).</li>
+ <li>Error in SSE4.1, AVX2, NEON optimizations of function BgraToRgb (small width, internal call from ImageSaveToMemory, ImageLoadFromMemory).</li>
 </ul>
 
 <h4>Test framework</h4>
@@ -109,6 +119,7 @@
  <li>Error in test SquaredDifferenceSum32f.</li>
  <li>Error in test NeuralAddConvolution2x2ForwardAutoTest.</li>
  <li>Error in parsing of 'testThreads' command line options.</li>
+ <li>Error in performance report (Dupling of the same columns).</li>
 </ul>
 
 <h4>Infrastructure</h4>
@@ -122,6 +133,7 @@
 <h5>Bug fixing</h5>
 <ul>
  <li>Syntax and lexical errors in description of Python wrapper.</li>
+ <li>Wrong description of build process for Microsoft Visual Studio.</li>
 </ul>
 
 <a href="#HOME">Home</a>

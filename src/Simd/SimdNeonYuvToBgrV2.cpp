@@ -24,6 +24,7 @@
 #include "Simd/SimdMemory.h"
 #include "Simd/SimdStore.h"
 #include "Simd/SimdYuvToBgr.h"
+#include "Simd/SimdBase.h"
 
 namespace Simd
 {
@@ -95,7 +96,9 @@ namespace Simd
         void Yuv444pToBgrV2(const uint8_t* y, size_t yStride, const uint8_t* u, size_t uStride, const uint8_t* v, size_t vStride,
             size_t width, size_t height, uint8_t* bgr, size_t bgrStride, SimdYuvType yuvType)
         {
-            if (Aligned(y) && Aligned(yStride) && Aligned(u) && Aligned(uStride)
+            if (width < A)
+                Base::Yuv444pToBgrV2(y, yStride, u, uStride, v, vStride, width, height, bgr, bgrStride, yuvType);
+            else if (Aligned(y) && Aligned(yStride) && Aligned(u) && Aligned(uStride)
                 && Aligned(v) && Aligned(vStride) && Aligned(bgr) && Aligned(bgrStride))
                 Yuv444pToBgrV2<true>(y, yStride, u, uStride, v, vStride, width, height, bgr, bgrStride, yuvType);
             else
@@ -304,7 +307,9 @@ namespace Simd
         void Yuv444pToRgbV2(const uint8_t* y, size_t yStride, const uint8_t* u, size_t uStride, const uint8_t* v, size_t vStride,
             size_t width, size_t height, uint8_t* rgb, size_t rgbStride, SimdYuvType yuvType)
         {
-            if (Aligned(y) && Aligned(yStride) && Aligned(u) && Aligned(uStride)
+            if (width < A)
+                Base::Yuv444pToRgbV2(y, yStride, u, uStride, v, vStride, width, height, rgb, rgbStride, yuvType);
+            else if (Aligned(y) && Aligned(yStride) && Aligned(u) && Aligned(uStride)
                 && Aligned(v) && Aligned(vStride) && Aligned(rgb) && Aligned(rgbStride))
                 Yuv444pToRgbV2<true>(y, yStride, u, uStride, v, vStride, width, height, rgb, rgbStride, yuvType);
             else
