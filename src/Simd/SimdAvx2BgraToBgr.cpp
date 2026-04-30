@@ -59,7 +59,9 @@ namespace Simd
 
         void BgraToBgr(const uint8_t * bgra, size_t width, size_t height, size_t bgraStride, uint8_t * bgr, size_t bgrStride)
         {
-            if (Aligned(bgra) && Aligned(bgraStride) && Aligned(bgr) && Aligned(bgrStride))
+            if(width < F)
+                Sse41::BgraToBgr(bgra, width, height, bgraStride, bgr, bgrStride);
+            else if (Aligned(bgra) && Aligned(bgraStride) && Aligned(bgr) && Aligned(bgrStride))
                 BgraToBgr<true>(bgra, width, height, bgraStride, bgr, bgrStride);
             else
                 BgraToBgr<false>(bgra, width, height, bgraStride, bgr, bgrStride);
