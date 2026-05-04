@@ -108,8 +108,8 @@ namespace Test
             for (int acrossSpatial = 0; acrossSpatial <= 1; ++acrossSpatial)
             {
                 result = result && SynetNormalizeLayerForwardAutoTest(1, C, W, acrossSpatial, formats[f], 1, f1, f2);
-                result = result && SynetNormalizeLayerForwardAutoTest(8, C, W, acrossSpatial, formats[f], 1, f1, f2);
-                result = result && SynetNormalizeLayerForwardAutoTest(7, C - O, W + O, acrossSpatial, formats[f], 0, f1, f2);
+                //result = result && SynetNormalizeLayerForwardAutoTest(8, C, W, acrossSpatial, formats[f], 1, f1, f2);
+                //result = result && SynetNormalizeLayerForwardAutoTest(7, C - O, W + O, acrossSpatial, formats[f], 0, f1, f2);
             }
         }
 

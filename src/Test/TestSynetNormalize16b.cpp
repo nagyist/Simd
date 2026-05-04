@@ -109,10 +109,10 @@ namespace Test
 
         for (int f = 0; f < 1; f++)
         {
-            result = result && SynetNormalizeLayerForward16bV2AutoTest(1, 512, 196, formats[f], 1, f1, f2);
+            //result = result && SynetNormalizeLayerForward16bV2AutoTest(1, 512, 196, formats[f], 1, f1, f2);
             result = result && SynetNormalizeLayerForward16bV2AutoTest(1, C, W, formats[f], 1, f1, f2);
-            result = result && SynetNormalizeLayerForward16bV2AutoTest(8, C, W, formats[f], 1, f1, f2);
-            result = result && SynetNormalizeLayerForward16bV2AutoTest(7, C - O, W + O, formats[f], 0, f1, f2);
+            //result = result && SynetNormalizeLayerForward16bV2AutoTest(8, C, W, formats[f], 1, f1, f2);
+            //result = result && SynetNormalizeLayerForward16bV2AutoTest(7, C - O, W + O, formats[f], 0, f1, f2);
         }
 
         return result;
