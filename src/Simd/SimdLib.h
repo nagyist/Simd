@@ -995,9 +995,23 @@ extern "C"
 
         \fn size_t SimdAlignment();
 
-        \short Gets alignment required for the most productive work of Simd Library.
+        \short Returns the optimal memory alignment for the current platform.
 
-        \return a required alignment.
+        Returns the byte-width of the widest SIMD register available at runtime, which is the recommended
+        alignment value to pass to ::SimdAllocate and ::SimdAlign in order to achieve best performance.
+
+        The value is determined once at library initialization time by probing the active SIMD extensions
+        and is constant for the lifetime of the process:
+        - \b 64 bytes — AVX-512 (x86, when AVX-512BW or AVX-512VNNI is available)
+        - \b 32 bytes — AVX2 (x86)
+        - \b 16 bytes — SSE4.1 (x86) or NEON (ARM)
+        - <b>sizeof(HVX_Vector)</b> — HVX (Qualcomm Hexagon)
+        - <b>sizeof(void*)</b> — scalar fallback (no SIMD extensions detected)
+
+        The returned value is always a power of two and equals the value of the \c SIMD_ALIGN compile-time
+        constant used internally by the library.
+
+        \return the optimal alignment in bytes for the current platform.
     */
     SIMD_API size_t SimdAlignment(void);
 
