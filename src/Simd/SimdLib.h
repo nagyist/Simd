@@ -1002,7 +1002,7 @@ extern "C"
 
         The value is determined once at library initialization time by probing the active SIMD extensions
         and is constant for the lifetime of the process:
-        - \b 64 bytes — AVX-512 (x86, when AVX-512BW or AVX-512VNNI is available)
+        - \b 64 bytes — AVX-512 (x86, when either AVX-512BW or AVX-512VNNI is available)
         - \b 32 bytes — AVX2 (x86)
         - \b 16 bytes — SSE4.1 (x86) or NEON (ARM)
         - <b>sizeof(HVX_Vector)</b> — HVX (Qualcomm Hexagon)
