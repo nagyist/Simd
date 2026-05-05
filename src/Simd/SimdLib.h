@@ -787,7 +787,31 @@ extern "C"
 
         \short Gets version of %Simd Library.
 
-        \return string with version of %Simd Library (major version number, minor version number, release number, number of SVN's commits).
+        Returns a pointer to a null-terminated, statically allocated string that encodes the library version.
+        The format of the string is:
+        \verbatim
+        major.minor.release[.branch-sha]
+        \endverbatim
+        where \b major, \b minor and \b release are numeric components taken from the library's version file,
+        and the optional \b branch and \b sha suffix identify the Git branch name and short commit hash at
+        build time (e.g. <tt>"7.1.161.main-a1b2c3d"</tt>). When version information is not available at
+        build time the function returns <tt>"unknown"</tt>.
+
+        The returned pointer is valid for the lifetime of the process and must not be freed.
+
+        Using example:
+        \verbatim
+        #include "Simd/SimdLib.h"
+        #include <iostream>
+
+        int main()
+        {
+            std::cout << "Simd Library version: " << SimdVersion() << std::endl;
+            return 0;
+        }
+        \endverbatim
+
+        \return a pointer to a static null-terminated string with the version of %Simd Library.
     */
     SIMD_API const char * SimdVersion(void);
 
