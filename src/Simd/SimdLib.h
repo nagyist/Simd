@@ -1019,11 +1019,25 @@ extern "C"
 
         \fn void SimdRelease(void * context);
 
-        \short Releases context created with using of Simd Library API.
+        \short Destroys an opaque context object created by the Simd Library API.
 
-        \note This function releases a context created by functions ::SimdDetectionLoadA and ::SimdDetectionInit.
+        Releases any context object returned by a Simd Library context-creation function,
+        i.e. any function whose name ends in \c Init (such as ::SimdGaussianBlurInit,
+        ::SimdResizerInit, ::SimdWarpAffineInit, ::SimdDescrIntInit, ::SimdFontInit,
+        ::SimdSynetConvolution32fInit, and others), as well as ::SimdDetectionLoadA.
 
-        \param [in] context - a context to be released.
+        Internally the function performs a polymorphic \c delete through the virtual
+        destructor of the internal \c Deletable base class, ensuring that the correct
+        destructor is always invoked regardless of the actual context type.
+
+        Passing \c NULL is safe and has no effect, consistent with the behaviour of a
+        C++ \c delete expression on a null pointer.
+
+        \note Passing a pointer that was not returned by a Simd Library context-creation
+              function (for example a pointer from ::SimdAllocate, \c malloc, or \c new)
+              is undefined behaviour.
+
+        \param [in] context - a pointer to the context to be released, or \c NULL.
     */    
     SIMD_API void SimdRelease(void * context);
 
