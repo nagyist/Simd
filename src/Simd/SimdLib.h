@@ -822,6 +822,15 @@ extern "C"
 
         \short Gets information about CPU and %Simd Library.
 
+        Depending on the requested ::SimdCpuInfoType, the function returns one of the following kinds of values:
+        - CPU topology: number of sockets, physical cores, or logical threads.
+        - Cache / RAM sizes in bytes (L1 data cache, L2 cache, L3 cache, physical RAM).
+        - SIMD extension availability: 1 if the extension is supported and enabled by the library, 0 otherwise.
+          The extensions covered are SSE4.1 (and below), AVX2 (and FMA/AVX), AVX-512BW (and AVX-512F),
+          AVX-512VNNI, AMX-BF16 (and AMX-INT8/AVX-512VBMI/AVX-512FP16), NEON, SVE, and HVX.
+        - SVE vector width in bytes (::SimdCpuInfoSveSize).
+        - Current CPU core frequency in Hz (::SimdCpuInfoCurrentFrequency); returns 0 if unavailable on the platform.
+
         \note See enumeration ::SimdCpuInfoType.
 
         Using example:
@@ -844,12 +853,17 @@ extern "C"
             std::cout << "AVX-512VNNI: " << (SimdCpuInfo(SimdCpuInfoAvx512vnni) ? "Yes" : "No") << std::endl;
             std::cout << "AMX-BF16: " << (SimdCpuInfo(SimdCpuInfoAmxBf16) ? "Yes" : "No") << std::endl;
             std::cout << "ARM-NEON: " << (SimdCpuInfo(SimdCpuInfoNeon) ? "Yes" : "No") << std::endl;
+            std::cout << "ARM-SVE: " << (SimdCpuInfo(SimdCpuInfoSve) ? "Yes" : "No") << std::endl;
+            std::cout << "ARM-SVE size: " << SimdCpuInfo(SimdCpuInfoSveSize) * 8 << " bits" << std::endl;
+            std::cout << "HVX: " << (SimdCpuInfo(SimdCpuInfoHvx) ? "Yes" : "No") << std::endl;
+            std::cout << "Current frequency: " << SimdCpuInfo(SimdCpuInfoCurrentFrequency) / 1000000 << " MHz" << std::endl;
             return 0;
         }
         \endverbatim
 
         \param [in] type - a type of required information.
-        \return a value which contains information about CPU and %Simd Library.
+        \return a value whose meaning depends on \a type: a count (topology), size in bytes (cache/RAM),
+                1 or 0 (SIMD availability), size in bytes (SVE vector width), or frequency in Hz (current CPU frequency).
     */
     SIMD_API uint64_t SimdCpuInfo(SimdCpuInfoType type);
 
