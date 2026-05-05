@@ -975,12 +975,19 @@ extern "C"
 
         \fn size_t SimdAlign(size_t size, size_t align);
 
-        \short Gets aligned size.
+        \short Rounds a size value up to the nearest multiple of a given alignment.
 
-        \param [in] size - an original size.
-        \param [in] align - a required alignment.
+        Returns the smallest value that is both a multiple of \a align and greater than or equal to \a size.
+        If \a size is already a multiple of \a align, it is returned unchanged.
 
-        \return an aligned size.
+        The function uses the bitwise formula <tt>(size + align - 1) & ~(align - 1)</tt>, which requires
+        \a align to be a positive power of two.
+
+        \param [in] size - the original size in bytes (or elements) to be aligned.
+        \param [in] align - the required alignment in bytes. Must be a positive power of two.
+                            Use ::SimdAlignment to obtain the optimal alignment for the current platform.
+
+        \return the smallest multiple of \a align that is greater than or equal to \a size.
     */
     SIMD_API size_t SimdAlign(size_t size, size_t align);
 
