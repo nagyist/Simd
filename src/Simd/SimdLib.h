@@ -819,9 +819,17 @@ extern "C"
 
         \fn const char* SimdCpuDesc(SimdCpuDescType type);
 
-        \short Gets description of CPU and %Simd Library.
+        \short Gets a text description of the CPU.
 
-        \note See enumeration ::SimdCpuDescType.
+        Returns a pointer to a null-terminated string whose content depends on the requested ::SimdCpuDescType:
+        - ::SimdCpuDescModel — the CPU brand/model name string (e.g. <tt>"Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz"</tt>).
+          On x86 it is read from the CPUID brand-string leaves; on Linux/ARM it is obtained via \c lscpu.
+          An empty string is returned on platforms where the model name is not available (Apple, Android).
+
+        The returned pointer is valid for the lifetime of the process and must not be freed.
+        For an unknown or unsupported \a type value the function returns \c NULL.
+
+        \note See enumeration ::SimdCpuDescType for the full list of supported types.
 
         Using example:
         \verbatim
@@ -830,13 +838,14 @@ extern "C"
 
         int main()
         {
-            std::cout << "CPU: " << SimdCpuDesc(SimdCpuDescModel) << std::endl;
+            std::cout << "CPU model: " << SimdCpuDesc(SimdCpuDescModel) << std::endl;
             return 0;
         }
         \endverbatim
 
-        \param [in] type - a type of required description.
-        \return a value which contains description of CPU and %Simd Library.
+        \param [in] type - a type of required description. See ::SimdCpuDescType.
+        \return a pointer to a static null-terminated string with the requested CPU description,
+                or \c NULL if \a type is not supported.
     */
     SIMD_API const char* SimdCpuDesc(SimdCpuDescType type);
 
