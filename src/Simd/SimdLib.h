@@ -916,14 +916,38 @@ extern "C"
 
         \fn void * SimdAllocate(size_t size, size_t align);
 
-        \short Allocates aligned memory block.
+        \short Allocates an aligned memory block.
 
-        \note The memory allocated by this function is must be deleted by function ::SimdFree.
+        Allocates a contiguous memory block of at least \a size bytes whose start address is a multiple of \a align.
+        The alignment value must be a power of two and, on POSIX platforms (GCC), is rounded up to at least
+        <tt>sizeof(void*)</tt> internally.  The actual allocation is performed via the platform-appropriate
+        aligned allocator: \c _aligned_malloc (MSVC), \c __mingw_aligned_malloc (MinGW), \c posix_memalign (GCC),
+        or plain \c malloc on platforms that do not support aligned allocation.
 
-        \param [in] size - a size of memory block.
-        \param [in] align - a required alignment of memory block.
+        The block must be released with ::SimdFree — passing it to the standard \c free or \c delete is undefined behaviour.
 
-        \return a pointer to allocated memory.
+        Using example:
+        \verbatim
+        #include "Simd/SimdLib.h"
+
+        int main()
+        {
+            const size_t size  = 1024;
+            const size_t align = SimdAlignment();
+            uint8_t * data = (uint8_t *)SimdAllocate(size, align);
+            if (data)
+            {
+                // use data ...
+                SimdFree(data);
+            }
+            return 0;
+        }
+        \endverbatim
+
+        \param [in] size - the number of bytes to allocate. Must be greater than zero.
+        \param [in] align - the required alignment of the allocated block in bytes. Must be a power of two.
+                            Use ::SimdAlignment to obtain the optimal alignment for the current platform.
+        \return a pointer to the newly allocated aligned memory block, or \c NULL if the allocation fails.
     */
     SIMD_API void * SimdAllocate(size_t size, size_t align);
 
