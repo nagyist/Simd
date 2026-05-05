@@ -955,11 +955,19 @@ extern "C"
 
         \fn void SimdFree(void * ptr);
 
-        \short Frees aligned memory block.
+        \short Frees an aligned memory block previously allocated by ::SimdAllocate.
 
-        \note This function frees a memory allocated by function ::SimdAllocate.
+        Releases the memory block pointed to by \a ptr, which must have been returned by a prior call to
+        ::SimdAllocate. Passing a pointer obtained from any other allocator (e.g. \c malloc, \c new,
+        or \c _aligned_malloc) is undefined behaviour.
 
-        \param [in] ptr - a pointer to the memory to be deleted.
+        Passing \c NULL is safe and has no effect, consistent with the behaviour of the standard \c free function.
+
+        The underlying release call matches the allocator used by ::SimdAllocate for the current platform:
+        \c _aligned_free (MSVC), \c __mingw_aligned_free (MinGW), or \c free (GCC and others).
+
+        \param [in] ptr - a pointer to the memory block to free. Must have been returned by ::SimdAllocate,
+                          or \c NULL (in which case the call has no effect).
     */
     SIMD_API void SimdFree(void * ptr);
 
