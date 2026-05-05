@@ -920,7 +920,7 @@ extern "C"
 
         Allocates a contiguous memory block of at least \a size bytes whose start address is a multiple of \a align.
         The alignment value must be a power of two and, on POSIX platforms (GCC), is rounded up to at least
-        <tt>sizeof(void*)</tt> internally.  The actual allocation is performed via the platform-appropriate
+        <tt>sizeof(void*)</tt> internally. The actual allocation is performed via the platform-appropriate
         aligned allocator: \c _aligned_malloc (MSVC), \c __mingw_aligned_malloc (MinGW), \c posix_memalign (GCC),
         or plain \c malloc on platforms that do not support aligned allocation.
 
