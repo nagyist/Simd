@@ -200,7 +200,7 @@ namespace Simd
             assert((width % 2 == 0) && (height % 2 == 0) && (width >= 2) && (height >= 2));
 
             size_t A = svlen(svuint8_t()), HA = A / 2, A4 = A * 4;
-            size_t widthA = AlignLo(width, A), tail = widthA - width;
+            size_t widthA = AlignLo(width, A), tail = width - widthA;
             const svbool_t bodyY = svptrue_b8();
             const svbool_t bodyUv = svwhilelt_b8(size_t(0), HA);
             const svbool_t tailY = svwhilelt_b8(size_t(0), tail);
@@ -256,7 +256,7 @@ namespace Simd
             assert((width % 2 == 0) && (width >= 2));
 
             size_t A = svlen(svuint8_t()), HA = A / 2, A4 = A * 4;
-            size_t widthA = AlignLo(width, A), tail = widthA - width;
+            size_t widthA = AlignLo(width, A), tail = width - widthA;
             const svbool_t bodyY = svptrue_b8();
             const svbool_t bodyUv = svwhilelt_b8(size_t(0), HA);
             const svbool_t tailY = svwhilelt_b8(size_t(0), tail);
