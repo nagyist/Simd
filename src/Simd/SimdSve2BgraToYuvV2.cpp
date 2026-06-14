@@ -244,9 +244,9 @@ namespace Simd
 
             svst1_u8(maskY, y, BgrToY8<T>(svget4(_bgra, 0), svget4(_bgra, 1), svget4(_bgra, 2)));
 
-            svuint16_t blue = Average(svget4(_bgra, 0), maskUv);
-            svuint16_t green = Average(svget4(_bgra, 1), maskUv);
-            svuint16_t red = Average(svget4(_bgra, 2), maskUv);
+            svuint16_t blue = Average(svget4(_bgra, 0), maskY);
+            svuint16_t green = Average(svget4(_bgra, 1), maskY);
+            svuint16_t red = Average(svget4(_bgra, 2), maskY);
 
             svst1_u8(maskUv, u, PackSequentialI16ToU8(BgrToU16<T>(blue, green, red)));
             svst1_u8(maskUv, v, PackSequentialI16ToU8(BgrToV16<T>(blue, green, red)));
