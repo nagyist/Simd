@@ -128,11 +128,11 @@ namespace Simd
             return svlsr_n_u16_x(mask, svadd_n_u16_x(mask, sum, 2), 2);
         }
 
-        SIMD_INLINE svuint16_t Average(const svuint8_t& row)
+        SIMD_INLINE svuint16_t Average(const svuint8_t& row, const svbool_t &mask)
         {
-            const svbool_t mask = svptrue_b16();
-            svuint16_t sum = svadd_u16_x(mask, svmovlb_u16(svuzp1_u8(row, row)), svmovlb_u16(svuzp2_u8(row, row)));
-            return svlsr_n_u16_x(mask, svadd_n_u16_x(mask, sum, 1), 1);
+            //svuint16_t sum = svadd_u16_x(mask, svmovlb_u16(svuzp1_u8(row, row)), svmovlb_u16(svuzp2_u8(row, row)));
+            //return svlsr_n_u16_x(mask, svadd_n_u16_x(mask, sum, 1), 1);
+            return svlsr_n_u16_x(mask, svadalp_u16_x(mask, svdup_n_u16(1), row), 1);
         }
 
         //-------------------------------------------------------------------------------------------------
@@ -244,9 +244,9 @@ namespace Simd
 
             svst1_u8(maskY, y, BgrToY8<T>(svget4(_bgra, 0), svget4(_bgra, 1), svget4(_bgra, 2)));
 
-            svuint16_t blue = Average(svget4(_bgra, 0));
-            svuint16_t green = Average(svget4(_bgra, 1));
-            svuint16_t red = Average(svget4(_bgra, 2));
+            svuint16_t blue = Average(svget4(_bgra, 0), maskUv);
+            svuint16_t green = Average(svget4(_bgra, 1), maskUv);
+            svuint16_t red = Average(svget4(_bgra, 2), maskUv);
 
             svst1_u8(maskUv, u, PackSequentialI16ToU8(BgrToU16<T>(blue, green, red)));
             svst1_u8(maskUv, v, PackSequentialI16ToU8(BgrToV16<T>(blue, green, red)));
@@ -257,15 +257,19 @@ namespace Simd
         {
             assert((width % 2 == 0) && (width >= 2));
 
-            size_t A = svlen(svuint8_t());
+            size_t A = svlen(svuint8_t()), HA = A / 2, A4 = A * 4;
+            size_t widthA = AlignLo(width, A), tail = widthA - width;
+            const svbool_t bodyY = svptrue_b8();
+            const svbool_t bodyUv = svwhilelt_b8(size_t(0), HA);
+            const svbool_t tailY = svwhilelt_b8(size_t(0), tail);
+            const svbool_t tailUv = svwhilelt_b8(size_t(0), tail / 2);
             for (size_t row = 0; row < height; ++row)
             {
-                for (size_t col = 0; col < width; col += A)
-                {
-                    size_t block = Simd::Min(A, width - col);
-                    BgraToYuv422pV2<T>(bgra + col * 4, y + col, u + col / 2, v + col / 2,
-                        svwhilelt_b8(size_t(0), block), svwhilelt_b8(size_t(0), block / 2));
-                }
+                size_t colBgra = 0, colY = 0, colUv = 0;
+                for (; colY < widthA; colBgra += A4, colY += A, colUv += HA)
+                    BgraToYuv422pV2<T>(bgra + colBgra, y + colY, u + colUv, v + colUv, bodyY, bodyUv);
+                if (colY < width)
+                    BgraToYuv422pV2<T>(bgra + colBgra, y + colY, u + colUv, v + colUv, tailY, tailUv);
                 bgra += bgraStride;
                 y += yStride;
                 u += uStride;
