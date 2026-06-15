@@ -626,6 +626,48 @@ namespace Simd
             Apply8u2<type>(ptr + 6 * dP, buf + 6 * dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tail);
             Apply8u2<type>(ptr + 7 * dP, buf + 7 * dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tail);
         }
+
+        //--------------------------------------------------------------------------------------------------
+
+        template<Term8iType term, SimdConvolutionActivationType type, int flush, int M> static SIMD_INLINE void ApplyMx1(
+            uint8_t* ptr, int32_t* buf, const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, const __m512i& iHi,
+            const __m512& iScale, const __m512* params, const __m512& dNorm, const __m512i& dZero, __mmask32 tail = -1)
+        {
+            __m512i d0, d1;
+            if (M > 0) d0 = Avx512bw::ToSave32i<type, 0>(_mm512_loadu_si512(buf + 0), sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero);
+            if (M > 1) d1 = Avx512bw::ToSave32i<type, 1>(_mm512_loadu_si512(buf + F), sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero);
+            if (term == Term8iLast8u)
+            {
+                if (M > 1)
+                {
+                    _mm256_mask_storeu_epi8(ptr, tail, _mm512_castsi512_si256(PackI16ToU8(PackI32ToI16(d0, d1), K_ZERO)));
+                    if (flush) _mm_prefetch((const char*)ptr, _MM_HINT_NTA);
+                }
+                else
+                {
+                    _mm_mask_storeu_epi8(ptr, tail, _mm512_castsi512_si128(PackI16ToU8(PackI32ToI16(d0, K_ZERO), K_ZERO)));
+                    if (flush) _mm_prefetch((const char*)ptr, _MM_HINT_NTA);
+                }
+            }
+            else if (term == Term8iLast32f)
+            {
+                assert(0);
+            }
+        }
+
+        template<Term8iType term, SimdConvolutionActivationType type, int flush, int M, int N> static SIMD_INLINE void ApplyMxN(
+            uint8_t* ptr, int dP, int32_t* buf, int dB, const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, const __m512i& iHi, 
+            const __m512& iScale, const __m512* params, const __m512& dNorm, const __m512i& dZero, __mmask32 tail = -1)
+        {
+            if (N > 0) ApplyMx1<term, type, flush, M>(ptr + 0 * dP, buf + 0 * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tail);
+            if (N > 1) ApplyMx1<term, type, flush, M>(ptr + 1 * dP, buf + 1 * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tail);
+            if (N > 2) ApplyMx1<term, type, flush, M>(ptr + 2 * dP, buf + 2 * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tail);
+            if (N > 3) ApplyMx1<term, type, flush, M>(ptr + 3 * dP, buf + 3 * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tail);
+            if (N > 4) ApplyMx1<term, type, flush, M>(ptr + 4 * dP, buf + 4 * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tail);
+            if (N > 5) ApplyMx1<term, type, flush, M>(ptr + 5 * dP, buf + 5 * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tail);
+            if (N > 6) ApplyMx1<term, type, flush, M>(ptr + 6 * dP, buf + 6 * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tail);
+            if (N > 7) ApplyMx1<term, type, flush, M>(ptr + 7 * dP, buf + 7 * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tail);
+        }
     }
 #endif
 }
