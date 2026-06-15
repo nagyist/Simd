@@ -39,56 +39,6 @@ namespace Simd
             return PackSaturatedI16ToU8(svuzp1_s16(value, value), svuzp2_s16(value, value));
         }
 
-        template<class T> SIMD_INLINE svint32_t BgrToU32(const svuint32_t& blue, const svuint32_t& green, const svuint32_t& red)
-        {
-            const svbool_t mask = svptrue_b32();
-            svint32_t u = svdup_n_s32(T::B_ROUND);
-            u = svadd_s32_x(mask, u, svmul_n_s32_x(mask, svreinterpret_s32_u32(blue), T::B_2_U));
-            u = svadd_s32_x(mask, u, svmul_n_s32_x(mask, svreinterpret_s32_u32(green), T::G_2_U));
-            u = svadd_s32_x(mask, u, svmul_n_s32_x(mask, svreinterpret_s32_u32(red), T::R_2_U));
-            return svasr_n_s32_x(mask, u, T::B_SHIFT);
-        }
-
-        template<class T> SIMD_INLINE svint16_t BgrToU16(const svuint16_t& blue, const svuint16_t& green, const svuint16_t& red)
-        {
-            const svbool_t mask = svptrue_b16();
-            return svadd_n_s16_x(mask, PackI32ToI16(
-                BgrToU32<T>(svmovlb_u32(blue), svmovlb_u32(green), svmovlb_u32(red)),
-                BgrToU32<T>(svmovlt_u32(blue), svmovlt_u32(green), svmovlt_u32(red))), T::UV_Z);
-        }
-
-        template<class T> SIMD_INLINE svuint8_t BgrToU8(const svuint8_t& blue, const svuint8_t& green, const svuint8_t& red)
-        {
-            return PackSaturatedI16ToU8(
-                BgrToU16<T>(svmovlb_u16(blue), svmovlb_u16(green), svmovlb_u16(red)),
-                BgrToU16<T>(svmovlt_u16(blue), svmovlt_u16(green), svmovlt_u16(red)));
-        }
-
-        template<class T> SIMD_INLINE svint32_t BgrToV32(const svuint32_t& blue, const svuint32_t& green, const svuint32_t& red)
-        {
-            const svbool_t mask = svptrue_b32();
-            svint32_t v = svdup_n_s32(T::B_ROUND);
-            v = svadd_s32_x(mask, v, svmul_n_s32_x(mask, svreinterpret_s32_u32(blue), T::B_2_V));
-            v = svadd_s32_x(mask, v, svmul_n_s32_x(mask, svreinterpret_s32_u32(green), T::G_2_V));
-            v = svadd_s32_x(mask, v, svmul_n_s32_x(mask, svreinterpret_s32_u32(red), T::R_2_V));
-            return svasr_n_s32_x(mask, v, T::B_SHIFT);
-        }
-
-        template<class T> SIMD_INLINE svint16_t BgrToV16(const svuint16_t& blue, const svuint16_t& green, const svuint16_t& red)
-        {
-            const svbool_t mask = svptrue_b16();
-            return svadd_n_s16_x(mask, PackI32ToI16(
-                BgrToV32<T>(svmovlb_u32(blue), svmovlb_u32(green), svmovlb_u32(red)),
-                BgrToV32<T>(svmovlt_u32(blue), svmovlt_u32(green), svmovlt_u32(red))), T::UV_Z);
-        }
-
-        template<class T> SIMD_INLINE svuint8_t BgrToV8(const svuint8_t& blue, const svuint8_t& green, const svuint8_t& red)
-        {
-            return PackSaturatedI16ToU8(
-                BgrToV16<T>(svmovlb_u16(blue), svmovlb_u16(green), svmovlb_u16(red)),
-                BgrToV16<T>(svmovlt_u16(blue), svmovlt_u16(green), svmovlt_u16(red)));
-        }
-
         //-------------------------------------------------------------------------------------------------
 
         template <class T> SIMD_INLINE void BgrToYuv444pV2(const uint8_t* bgr, uint8_t* y, uint8_t* u, uint8_t* v, const svbool_t& mask)
@@ -155,8 +105,8 @@ namespace Simd
             svuint16_t green = AverageUv(svget3(bgr00, 1), svget3(bgr10, 1), maskY);
             svuint16_t red = AverageUv(svget3(bgr00, 2), svget3(bgr10, 2), maskY);
 
-            svst1_u8(maskUv, u, PackSequentialI16ToU8(BgrToU16<T>(blue, green, red)));
-            svst1_u8(maskUv, v, PackSequentialI16ToU8(BgrToV16<T>(blue, green, red)));
+            svst1_u8(maskUv, u, PackSequentialI16ToU8(BgrToU16<T>(svreinterpret_s16_u16(blue), svreinterpret_s16_u16(green), svreinterpret_s16_u16(red))));
+            svst1_u8(maskUv, v, PackSequentialI16ToU8(BgrToV16<T>(svreinterpret_s16_u16(blue), svreinterpret_s16_u16(green), svreinterpret_s16_u16(red))));
         }
 
         template <class T> void BgrToYuv420pV2(const uint8_t* bgr, size_t bgrStride, size_t width, size_t height,
@@ -211,8 +161,8 @@ namespace Simd
             svuint16_t green = AverageUv(svget3(_bgr, 1), maskY);
             svuint16_t red = AverageUv(svget3(_bgr, 2), maskY);
 
-            svst1_u8(maskUv, u, PackSequentialI16ToU8(BgrToU16<T>(blue, green, red)));
-            svst1_u8(maskUv, v, PackSequentialI16ToU8(BgrToV16<T>(blue, green, red)));
+            svst1_u8(maskUv, u, PackSequentialI16ToU8(BgrToU16<T>(svreinterpret_s16_u16(blue), svreinterpret_s16_u16(green), svreinterpret_s16_u16(red))));
+            svst1_u8(maskUv, v, PackSequentialI16ToU8(BgrToV16<T>(svreinterpret_s16_u16(blue), svreinterpret_s16_u16(green), svreinterpret_s16_u16(red))));
         }
 
         template <class T> void BgrToYuv422pV2(const uint8_t* bgr, size_t bgrStride, size_t width, size_t height,

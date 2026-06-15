@@ -984,6 +984,34 @@ namespace Simd
                 BgrToY16<T>(svreinterpret_s16_u16(svmovlt_u16(blue)), svreinterpret_s16_u16(svmovlt_u16(green)), svreinterpret_s16_u16(svmovlt_u16(red))));
         }
 
+        template<class T> SIMD_INLINE svint16_t BgrToU16(const svint16_t& blue, const svint16_t& green, const svint16_t& red)
+        {
+            svint32_t ub = svmlalb_n_s32(svmlalb_n_s32(svmlalb_n_s32(svdup_n_s32(0), blue, T::B_2_U), green, T::G_2_U), red, T::R_2_U);
+            svint32_t ut = svmlalt_n_s32(svmlalt_n_s32(svmlalt_n_s32(svdup_n_s32(0), blue, T::B_2_U), green, T::G_2_U), red, T::R_2_U);
+            return svadd_n_s16_x(svptrue_b16(), svqrshrnt_n_s32(svqrshrnb_n_s32(ub, T::B_SHIFT), ut, T::B_SHIFT), T::UV_LO);
+        }
+
+        template<class T> SIMD_INLINE svuint8_t BgrToU8(const svuint8_t& blue, const svuint8_t& green, const svuint8_t& red)
+        {
+            return PackSaturatedI16ToU8(
+                BgrToU16<T>(svreinterpret_s16_u16(svmovlb_u16(blue)), svreinterpret_s16_u16(svmovlb_u16(green)), svreinterpret_s16_u16(svmovlb_u16(red))),
+                BgrToU16<T>(svreinterpret_s16_u16(svmovlt_u16(blue)), svreinterpret_s16_u16(svmovlt_u16(green)), svreinterpret_s16_u16(svmovlt_u16(red))));
+        }
+
+        template<class T> SIMD_INLINE svint16_t BgrToV16(const svint16_t& blue, const svint16_t& green, const svint16_t& red)
+        {
+            svint32_t vb = svmlalb_n_s32(svmlalb_n_s32(svmlalb_n_s32(svdup_n_s32(0), blue, T::B_2_V), green, T::G_2_V), red, T::R_2_V);
+            svint32_t vt = svmlalt_n_s32(svmlalt_n_s32(svmlalt_n_s32(svdup_n_s32(0), blue, T::B_2_V), green, T::G_2_V), red, T::R_2_V);
+            return svadd_n_s16_x(svptrue_b16(), svqrshrnt_n_s32(svqrshrnb_n_s32(vb, T::B_SHIFT), vt, T::B_SHIFT), T::UV_LO);
+        }
+
+        template<class T> SIMD_INLINE svuint8_t BgrToV8(const svuint8_t& blue, const svuint8_t& green, const svuint8_t& red)
+        {
+            return PackSaturatedI16ToU8(
+                BgrToV16<T>(svreinterpret_s16_u16(svmovlb_u16(blue)), svreinterpret_s16_u16(svmovlb_u16(green)), svreinterpret_s16_u16(svmovlb_u16(red))),
+                BgrToV16<T>(svreinterpret_s16_u16(svmovlt_u16(blue)), svreinterpret_s16_u16(svmovlt_u16(green)), svreinterpret_s16_u16(svmovlt_u16(red))));
+        }
+
         SIMD_INLINE svuint16_t AverageUv(const svuint8_t& row0, const svuint8_t& row1, const svbool_t& mask)
         {
             return svlsr_n_u16_x(mask, svadalp_u16_x(mask, svadalp_u16_x(mask, svdup_n_u16(2), row0), row1), 2);
