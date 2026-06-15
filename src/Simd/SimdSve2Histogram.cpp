@@ -55,19 +55,12 @@ namespace Simd
             };
         }
 
-        SIMD_INLINE svuint8_t Average2(const svuint8_t& a, const svuint8_t& b)
-        {
-            svuint16_t lo = svadd_n_u16_x(svptrue_b16(), svaddlb_u16(a, b), 1);
-            svuint16_t hi = svadd_n_u16_x(svptrue_b16(), svaddlt_u16(a, b), 1);
-            return svshrnt_n_u16(svshrnb_n_u16(lo, 1), hi, 1);
-        }
-
         SIMD_INLINE svuint8_t AbsSecondDerivative(const uint8_t* src, ptrdiff_t step, const svbool_t& mask)
         {
             const svuint8_t s0 = svld1_u8(mask, src - step);
             const svuint8_t s1 = svld1_u8(mask, src);
             const svuint8_t s2 = svld1_u8(mask, src + step);
-            return svabd_u8_x(mask, Average2(s0, s2), s1);
+            return svabd_u8_x(mask, svrhadd_u8_x(mask, s0, s2), s1);
         }
 
         SIMD_INLINE void AbsSecondDerivative(const uint8_t* src, ptrdiff_t colStep, ptrdiff_t rowStep, uint8_t* dst, const svbool_t& mask)
