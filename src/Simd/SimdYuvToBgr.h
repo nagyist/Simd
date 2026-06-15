@@ -972,8 +972,8 @@ namespace Simd
 
         template<class T> SIMD_INLINE svint16_t BgrToY16(const svint16_t& blue, const svint16_t& green, const svint16_t& red)
         {
-            svint32_t yb = svmlalb_n_s32(svmlalb_n_s32(svmlalb_n_s32(svdup_n_s32(T::B_ROUND), blue, T::B_2_Y), green, T::G_2_Y), red, T::R_2_Y);
-            svint32_t yt = svmlalt_n_s32(svmlalt_n_s32(svmlalt_n_s32(svdup_n_s32(T::B_ROUND), blue, T::B_2_Y), green, T::G_2_Y), red, T::R_2_Y);
+            svint32_t yb = svmlalb_n_s32(svmlalb_n_s32(svmlalb_n_s32(svdup_n_s32(0), blue, T::B_2_Y), green, T::G_2_Y), red, T::R_2_Y);
+            svint32_t yt = svmlalt_n_s32(svmlalt_n_s32(svmlalt_n_s32(svdup_n_s32(0), blue, T::B_2_Y), green, T::G_2_Y), red, T::R_2_Y);
             return svadd_n_s16_x(svptrue_b16(), svqrshrnt_n_s32(svqrshrnb_n_s32(yb, T::B_SHIFT), yt, T::B_SHIFT), T::Y_LO);
         }
 
