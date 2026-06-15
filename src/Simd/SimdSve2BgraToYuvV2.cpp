@@ -44,29 +44,18 @@ namespace Simd
             return PackSaturatedI16ToU8(svuzp1_s16(value, value), svuzp2_s16(value, value));
         }
 
-        template<class T> SIMD_INLINE svint32_t BgrToY32(const svuint32_t& blue, const svuint32_t& green, const svuint32_t& red)
+        template<class T> SIMD_INLINE svint16_t BgrToY16(const svint16_t& blue, const svint16_t& green, const svint16_t& red)
         {
-            const svbool_t mask = svptrue_b32();
-            svint32_t y = svdup_n_s32(T::B_ROUND);
-            y = svadd_s32_x(mask, y, svmul_n_s32_x(mask, svreinterpret_s32_u32(blue), T::B_2_Y));
-            y = svadd_s32_x(mask, y, svmul_n_s32_x(mask, svreinterpret_s32_u32(green), T::G_2_Y));
-            y = svadd_s32_x(mask, y, svmul_n_s32_x(mask, svreinterpret_s32_u32(red), T::R_2_Y));
-            return svasr_n_s32_x(mask, y, T::B_SHIFT);
-        }
-
-        template<class T> SIMD_INLINE svint16_t BgrToY16(const svuint16_t& blue, const svuint16_t& green, const svuint16_t& red)
-        {
-            const svbool_t mask = svptrue_b16();
-            return svadd_n_s16_x(mask, PackI32ToI16(
-                BgrToY32<T>(svmovlb_u32(blue), svmovlb_u32(green), svmovlb_u32(red)),
-                BgrToY32<T>(svmovlt_u32(blue), svmovlt_u32(green), svmovlt_u32(red))), T::Y_LO);
+            svint32_t yb = svmlalb_n_s32(svmlalb_n_s32(svmlalb_n_s32(svdup_n_s32(T::B_ROUND), blue, T::B_2_Y), green, T::G_2_Y), red, T::R_2_Y);
+            svint32_t yt = svmlalt_n_s32(svmlalt_n_s32(svmlalt_n_s32(svdup_n_s32(T::B_ROUND), blue, T::B_2_Y), green, T::G_2_Y), red, T::R_2_Y);
+            return svadd_n_s16_x(svptrue_b32(), svqrshrnt_n_s32(svqrshrnb_n_s32(yb, T::B_SHIFT), yt, T::B_SHIFT), T::Y_LO);
         }
 
         template<class T> SIMD_INLINE svuint8_t BgrToY8(const svuint8_t& blue, const svuint8_t& green, const svuint8_t& red)
         {
             return PackSaturatedI16ToU8(
-                BgrToY16<T>(svmovlb_u16(blue), svmovlb_u16(green), svmovlb_u16(red)),
-                BgrToY16<T>(svmovlt_u16(blue), svmovlt_u16(green), svmovlt_u16(red)));
+                BgrToY16<T>(svreinterpret_s16_u16(svmovlb_u16(blue)), svreinterpret_s16_u16(svmovlb_u16(green)), svreinterpret_s16_u16(svmovlb_u16(red))),
+                BgrToY16<T>(svreinterpret_s16_u16(svmovlt_u16(blue)), svreinterpret_s16_u16(svmovlt_u16(green)), svreinterpret_s16_u16(svmovlt_u16(red))));
         }
 
         template<class T> SIMD_INLINE svint32_t BgrToU32(const svuint32_t& blue, const svuint32_t& green, const svuint32_t& red)
