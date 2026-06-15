@@ -30,6 +30,7 @@
 #include "Simd/SimdUnpack.h"
 #include "Simd/SimdLog.h"
 #include "Simd/SimdLoad.h"
+#include "Simd/SimdPack.h"
 
 #if defined(_MSC_VER) && _MSC_VER >= 1900    
 #define SIMD_YUV_TO_BGR_INLINE inline
@@ -965,11 +966,6 @@ namespace Simd
 #ifdef SIMD_SVE2_ENABLE
     namespace Sve2
     {
-        SIMD_INLINE svuint8_t PackSaturatedI16ToU8(const svint16_t& lo, const svint16_t& hi)
-        {
-            return svqxtunt_s16(svqxtunb_s16(lo), hi);
-        }
-
         template<class T> SIMD_INLINE svint16_t BgrToY16(const svint16_t& blue, const svint16_t& green, const svint16_t& red)
         {
             svint32_t yb = svmlalb_n_s32(svmlalb_n_s32(svmlalb_n_s32(svdup_n_s32(0), blue, T::B_2_Y), green, T::G_2_Y), red, T::R_2_Y);
@@ -979,7 +975,7 @@ namespace Simd
 
         template<class T> SIMD_INLINE svuint8_t BgrToY8(const svuint8_t& blue, const svuint8_t& green, const svuint8_t& red)
         {
-            return PackSaturatedI16ToU8(
+            return PackSatIntI16ToU8(
                 BgrToY16<T>(svreinterpret_s16_u16(svmovlb_u16(blue)), svreinterpret_s16_u16(svmovlb_u16(green)), svreinterpret_s16_u16(svmovlb_u16(red))),
                 BgrToY16<T>(svreinterpret_s16_u16(svmovlt_u16(blue)), svreinterpret_s16_u16(svmovlt_u16(green)), svreinterpret_s16_u16(svmovlt_u16(red))));
         }
@@ -993,7 +989,7 @@ namespace Simd
 
         template<class T> SIMD_INLINE svuint8_t BgrToU8(const svuint8_t& blue, const svuint8_t& green, const svuint8_t& red)
         {
-            return PackSaturatedI16ToU8(
+            return PackSatIntI16ToU8(
                 BgrToU16<T>(svreinterpret_s16_u16(svmovlb_u16(blue)), svreinterpret_s16_u16(svmovlb_u16(green)), svreinterpret_s16_u16(svmovlb_u16(red))),
                 BgrToU16<T>(svreinterpret_s16_u16(svmovlt_u16(blue)), svreinterpret_s16_u16(svmovlt_u16(green)), svreinterpret_s16_u16(svmovlt_u16(red))));
         }
@@ -1007,7 +1003,7 @@ namespace Simd
 
         template<class T> SIMD_INLINE svuint8_t BgrToV8(const svuint8_t& blue, const svuint8_t& green, const svuint8_t& red)
         {
-            return PackSaturatedI16ToU8(
+            return PackSatIntI16ToU8(
                 BgrToV16<T>(svreinterpret_s16_u16(svmovlb_u16(blue)), svreinterpret_s16_u16(svmovlb_u16(green)), svreinterpret_s16_u16(svmovlb_u16(red))),
                 BgrToV16<T>(svreinterpret_s16_u16(svmovlt_u16(blue)), svreinterpret_s16_u16(svmovlt_u16(green)), svreinterpret_s16_u16(svmovlt_u16(red))));
         }
