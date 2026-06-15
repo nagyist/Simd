@@ -25,6 +25,9 @@
     <Filter Include="Inc">
       <UniqueIdentifier>{49b4d20c-cb0c-49a3-8cd6-eddf6377e2ff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sve2\Image">
+      <UniqueIdentifier>{e24205a3-f4dd-4503-93e8-8f630c4c81b0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\Simd\SimdSve2.h">
@@ -122,9 +125,6 @@
     <ClCompile Include="..\..\src\Simd\SimdSve2AddFeatureDifference.cpp">
       <Filter>Sve2\Motion</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Simd\SimdSve2AlphaBlending.cpp">
-      <Filter>Sve2\Motion</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Simd\SimdSve2Background.cpp">
       <Filter>Sve2\Motion</Filter>
     </ClCompile>
@@ -184,6 +184,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Simd\SimdSve2Base64.cpp">
       <Filter>Sve2\System</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Simd\SimdSve2AlphaBlending.cpp">
+      <Filter>Sve2\Image</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

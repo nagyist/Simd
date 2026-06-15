@@ -71,7 +71,12 @@ namespace Simd
             return svreinterpret_u8_s16(value);
         }
 
-        SIMD_INLINE svuint8_t To16i(const svuint16_t& value)
+        SIMD_INLINE svuint8_t To8u(const svuint16_t& value)
+        {
+            return svreinterpret_u8_u16(value);
+        }
+
+        SIMD_INLINE svint16_t To16i(const svuint16_t& value)
         {
             return svreinterpret_s16_u16(value);
         }

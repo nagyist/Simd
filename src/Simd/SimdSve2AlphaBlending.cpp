@@ -23,6 +23,7 @@
 */
 #include "Simd/SimdAlphaBlending.h"
 #include "Simd/SimdMemory.h"
+#include "Simd/SimdCast.h"
 
 namespace Simd
 {
@@ -33,8 +34,8 @@ namespace Simd
         {
             svuint16_t lo = svmlalb_u16(svmlalb_u16(_1, dst, ialpha), src, alpha);
             svuint16_t hi = svmlalt_u16(svmlalt_u16(_1, dst, ialpha), src, alpha);
-            lo = svaddwt_u16(lo, svreinterpret_u8_u16(lo));
-            hi = svaddwt_u16(hi, svreinterpret_u8_u16(hi));
+            lo = svaddwt_u16(lo, To8u(lo));
+            hi = svaddwt_u16(hi, To8u(hi));
             return svshrnt_n_u16(svshrnb_n_u16(lo, 8), hi, 8);
         }
 
