@@ -40,7 +40,7 @@ namespace Simd
     namespace AmxBf16
     {
         typedef Base::SynetQuantizedConvolutionNhwcGemmV1::AlgParam AlgParam;
-        typedef Base::SynetQuantizedConvolutionNhwcGemmV1::GemmPtr Gemm;
+        typedef Base::SynetQuantizedConvolutionNhwcGemmV1::GemmPtr GemmPtr;
 
         //-----------------------------------------------------------------------------------------
 
@@ -355,6 +355,110 @@ namespace Simd
 
         //-----------------------------------------------------------------------------------------
 
+
+        typedef void (*QuantizedConvolutionNhwcGemmV1_GemmPtr)(const uint8_t* src0, const ConvParam& p, const AlgParam& a, size_t srcC, size_t dstS, 
+            size_t dstC, int update, const int8_t* weight0, const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, const __m512i& iHi, 
+            const __m512& iScale, const __m512* params, const __m512& dNorm, const __m512i& dZero, int32_t* sum0, int32_t* buf0, uint8_t* dst);
+
+        //-----------------------------------------------------------------------------------------
+
+        template<Term8iType term, SimdConvolutionActivationType type, int flush, int apply> void QuantizedConvolutionNhwcGemmV1_Gemm(
+            const uint8_t* src, const ConvParam& p, const AlgParam& a, size_t N, size_t M, size_t K, int update, const int8_t* weight, const int32_t* sBias, 
+            const float* sNorm, int32_t iZero, float iScale, const float* params, float dNorm, int32_t dZero, int32_t* sum, int32_t* buf, uint8_t* dst)
+        {
+            size_t n = 32, Mn = AlignLoAny(M, n), m = M - Mn;
+            size_t dW = a.bufK * DF, dS = a.bufK, dB = (term == Term8iInterim ? a.dB : DF), dD = p.dstC * a.elem;
+
+            __m512 _sNorm[2], _iScale, _params[2], _dNorm;
+            __m512i _sBias[2], _dZero = _mm512_set1_epi32(dZero), _iLo, _iHi;
+            if (type != SimdConvolutionActivationIdentity)
+            {
+                _iLo = _mm512_set1_epi32(-iZero);
+                _iHi = _mm512_set1_epi32(255 - iZero);
+                _iScale = _mm512_set1_ps(iScale);
+                _dNorm = _mm512_set1_ps(dNorm);
+                _params[0] = _mm512_set1_ps(params[0]);
+                _params[1] = _mm512_set1_ps(params[1]);
+            }
+            if (Mn)
+            {
+                SetTileConfFull();
+                for (size_t j = 0; j < N; j += DF)
+                {
+                    size_t dN = Simd::Min(DF, N - j);
+                    _sBias[0] = _mm512_loadu_si512((__m512i*)(sBias + j) + 0);
+                    _sBias[1] = _mm512_loadu_si512((__m512i*)(sBias + j) + 1);
+                    _sNorm[0] = _mm512_loadu_ps(sNorm + j + 0);
+                    _sNorm[1] = _mm512_loadu_ps(sNorm + j + F);
+                    if (type == SimdConvolutionActivationPrelu)
+                    {
+                        _params[0] = _mm512_loadu_ps(params + j + 0);
+                        _params[1] = _mm512_loadu_ps(params + j + F);
+                    }
+                    __mmask32 tailD = term == Term8iLast8u ? TailMask32(dN) : (__mmask32)TailMask16(dN - AlignLo(dN - 1, 16));
+                    buf = (term == Term8iInterim ? sum + j : buf);
+            //        if (dN > F)
+            //            Convolution16bNhwcGemmV2_GemmNxMx2<term, type, flush, 2, apply>(src, p, a, K, M, zero, weight, _bias, _params, sum + j, buf, dst + j * a.elem, tailD);
+            //        else
+            //            Convolution16bNhwcGemmV2_GemmNxMx2<term, type, flush, 1, apply>(src, p, a, K, M, zero, weight, _bias, _params, sum + j, buf, dst + j * a.elem, tailD);
+            //        weight += dW;
+                }
+            }
+            else
+            {
+            //    Convolution16bNhwcGemmV2_GemmPtr tail_2 = m > 16 ? Convolution16bNhwcGemmV2_Gemm2x2<term, type, flush, 0> : Convolution16bNhwcGemmV2_Gemm1x2<term, type, flush, 0>;
+            //    Convolution16bNhwcGemmV2_GemmPtr tail_1 = m > 16 ? Convolution16bNhwcGemmV2_Gemm2x1<term, type, flush, 0> : Convolution16bNhwcGemmV2_Gemm1x1<term, type, flush, 0>;
+                if (m > 16)
+                    SetTileConf2x2(m, 32);
+                else
+                    SetTileConf1x2(m, 32);
+                for (size_t j = 0; j < N; j += DF)
+                {
+                    size_t dN = Simd::Min(DF, N - j);
+                    _sBias[0] = _mm512_loadu_si512((__m512i*)(sBias + j) + 0);
+                    _sBias[1] = _mm512_loadu_si512((__m512i*)(sBias + j) + 1);
+                    _sNorm[0] = _mm512_loadu_ps(sNorm + j + 0);
+                    _sNorm[1] = _mm512_loadu_ps(sNorm + j + F);
+                    if (type == SimdConvolutionActivationPrelu)
+                    {
+                        _params[0] = _mm512_loadu_ps(params + j + 0);
+                        _params[1] = _mm512_loadu_ps(params + j + F);
+                    }
+                    __mmask32 tailD = term == Term8iLast8u ? TailMask32(dN) : (__mmask32)TailMask16(dN - AlignLo(dN - 1, 16));
+                    buf = (term == Term8iInterim ? sum + j : buf);
+            //        if (dN > F)
+            //            tail_2(src, p, a, K, m, dN, zero, weight, _bias, _params, sum + j, buf, dB, dst + j * a.elem, tailD);
+            //        else
+            //            tail_1(src, p, a, K, m, dN, zero, weight, _bias, _params, sum + j, buf, dB, dst + j * a.elem, tailD);
+            //        weight += dW;
+                }
+            }
+        }
+
+        //-----------------------------------------------------------------------------------------
+
+        template <SimdConvolutionActivationType type, int apply> SIMD_INLINE void SetGemm(const ConvParam& p, const AlgParam& a, GemmPtr* gemm)
+        {
+            gemm[0] = QuantizedConvolutionNhwcGemmV1_Gemm<Term8iInterim, SimdConvolutionActivationIdentity, 0, 0>;
+            if (p.dstT == SimdTensorData8u)
+                gemm[1] = QuantizedConvolutionNhwcGemmV1_Gemm<Term8iLast8u, type, 0, apply>;
+            else
+                gemm[1] = QuantizedConvolutionNhwcGemmV1_Gemm<Term8iLast32f, type, 0, apply>;
+        }
+
+        template <SimdConvolutionActivationType type> SIMD_INLINE void SetGemm(const ConvParam& p, const AlgParam& a, GemmPtr* gemm)
+        {
+            size_t lastMacroK = a.bufK - AlignLoAny(a.bufK - 1, a.macroK);
+            if (lastMacroK > 448)
+                SetGemm<type, 1>(p, a, gemm);
+            else if (lastMacroK > 192)
+                SetGemm<type, 2>(p, a, gemm);
+            else if (lastMacroK > 64)
+                SetGemm<type, 4>(p, a, gemm);
+            else
+                SetGemm<type, 8>(p, a, gemm);
+        }
+
         SynetQuantizedConvolutionNhwcGemmV1::SynetQuantizedConvolutionNhwcGemmV1(const ConvParam& p)
             : Base::SynetQuantizedConvolutionNhwcGemmV1(p)
         {
@@ -390,6 +494,21 @@ namespace Simd
                     _convAny = QuantizedConvolutionNhwcGemmV1_ReorderD1d;
                 else
                     _convAny = QuantizedConvolutionNhwcGemmV1_ReorderD;
+            }
+            switch (p.activation)
+            {
+            case SimdConvolutionActivationIdentity: SetGemm<SimdConvolutionActivationIdentity>(p, _alg, _gemm); break;
+            case SimdConvolutionActivationRelu: SetGemm<SimdConvolutionActivationRelu>(p, _alg, _gemm); break;
+            case SimdConvolutionActivationLeakyRelu: SetGemm<SimdConvolutionActivationLeakyRelu>(p, _alg, _gemm); break;
+            case SimdConvolutionActivationRestrictRange: SetGemm<SimdConvolutionActivationRestrictRange>(p, _alg, _gemm); break;
+            case SimdConvolutionActivationPrelu: SetGemm<SimdConvolutionActivationPrelu>(p, _alg, _gemm); break;
+            case SimdConvolutionActivationElu: SetGemm<SimdConvolutionActivationElu>(p, _alg, _gemm); break;
+            case SimdConvolutionActivationHswish: SetGemm<SimdConvolutionActivationHswish>(p, _alg, _gemm); break;
+            case SimdConvolutionActivationMish: SetGemm<SimdConvolutionActivationMish>(p, _alg, _gemm); break;
+            case SimdConvolutionActivationHardSigmoid: SetGemm<SimdConvolutionActivationHardSigmoid>(p, _alg, _gemm); break;
+            case SimdConvolutionActivationSwish: SetGemm<SimdConvolutionActivationSwish>(p, _alg, _gemm); break;
+            case SimdConvolutionActivationGelu: SetGemm<SimdConvolutionActivationGelu>(p, _alg, _gemm); break;
+            default: assert(0);
             }
         }
     }
