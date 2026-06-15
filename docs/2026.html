@@ -95,9 +95,7 @@
  <li>SVE2 optimizations of function BackgroundShiftRange.</li>
  <li>SVE2 optimizations of function BackgroundShiftRangeMasked.</li>
  <li>SVE2 optimizations of function BackgroundInitMask.</li>
- <li>SSE4.1 optimizations of function AveragingBinarizationV2.</li>
- <li>AVX2 optimizations of function AveragingBinarizationV2.</li>
- <li>AVX-512BW optimizations of function AveragingBinarizationV2.</li>
+ <li>SSE4.1, AVX2, AVX-512BW optimizations of function AveragingBinarizationV2.</li>
  <li>Support of RISCV/RISCV64 platform.</li>
  <li>Base implementation, AMX-BF16 optimizations of class SynetQuantizedConvolutionNhwcGemmV1.</li>
 </ul>
@@ -110,6 +108,10 @@
  <li>Crash in SSE4.1, AVX2, AVX-512BW, NEON optimizations of class SynetMergedConvolution32fCdc.</li>
  <li>Crash in SSE4.1, AVX2, AVX-512BW, AMX-BF16 optimizations of class SynetMergedConvolution16bCdc.</li>
  <li>Crash in SSE4.1, AVX2, AVX-512BW optimizations of class SynetMergedConvolution8iCdc.</li>
+ <li>Compiler error when disabled SIMD_SYNET option.</li>
+ <li>Compiler error when disabled SIMD_AVX512VNNI option.</li>
+ <li>Compiler error when disabled SIMD_AMXBF16 option.</li>
+ <li>Compiler error when disabled SIMD_AMXBF16 option on machine with AMX.</li>
 </ul>
 <h5>Renaming</h5>
 <ul>
