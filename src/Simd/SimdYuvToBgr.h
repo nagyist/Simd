@@ -961,6 +961,21 @@ namespace Simd
         }
     }
 #endif
+
+#ifdef SIMD_SVE2_ENABLE
+    namespace Sve2
+    {
+        SIMD_INLINE svuint16_t AverageUv(const svuint8_t& row0, const svuint8_t& row1, const svbool_t& mask)
+        {
+            return svlsr_n_u16_x(mask, svadalp_u16_x(mask, svadalp_u16_x(mask, svdup_n_u16(2), row0), row1), 2);
+        }
+
+        SIMD_INLINE svuint16_t AverageUv(const svuint8_t& row, const svbool_t& mask)
+        {
+            return svlsr_n_u16_x(mask, svadalp_u16_x(mask, svdup_n_u16(1), row), 1);
+        }
+    }
+#endif
 }
 
-#endif//__SimdYuvToBgr_h__
+#endif
