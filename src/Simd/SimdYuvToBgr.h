@@ -988,7 +988,7 @@ namespace Simd
         {
             svint32_t ub = svmlalb_n_s32(svmlalb_n_s32(svmlalb_n_s32(svdup_n_s32(0), blue, T::B_2_U), green, T::G_2_U), red, T::R_2_U);
             svint32_t ut = svmlalt_n_s32(svmlalt_n_s32(svmlalt_n_s32(svdup_n_s32(0), blue, T::B_2_U), green, T::G_2_U), red, T::R_2_U);
-            return svadd_n_s16_x(svptrue_b16(), svqrshrnt_n_s32(svqrshrnb_n_s32(ub, T::B_SHIFT), ut, T::B_SHIFT), T::UV_LO);
+            return svadd_n_s16_x(svptrue_b16(), svqrshrnt_n_s32(svqrshrnb_n_s32(ub, T::B_SHIFT), ut, T::B_SHIFT), T::UV_Z);
         }
 
         template<class T> SIMD_INLINE svuint8_t BgrToU8(const svuint8_t& blue, const svuint8_t& green, const svuint8_t& red)
@@ -1002,7 +1002,7 @@ namespace Simd
         {
             svint32_t vb = svmlalb_n_s32(svmlalb_n_s32(svmlalb_n_s32(svdup_n_s32(0), blue, T::B_2_V), green, T::G_2_V), red, T::R_2_V);
             svint32_t vt = svmlalt_n_s32(svmlalt_n_s32(svmlalt_n_s32(svdup_n_s32(0), blue, T::B_2_V), green, T::G_2_V), red, T::R_2_V);
-            return svadd_n_s16_x(svptrue_b16(), svqrshrnt_n_s32(svqrshrnb_n_s32(vb, T::B_SHIFT), vt, T::B_SHIFT), T::UV_LO);
+            return svadd_n_s16_x(svptrue_b16(), svqrshrnt_n_s32(svqrshrnb_n_s32(vb, T::B_SHIFT), vt, T::B_SHIFT), T::UV_Z);
         }
 
         template<class T> SIMD_INLINE svuint8_t BgrToV8(const svuint8_t& blue, const svuint8_t& green, const svuint8_t& red)
