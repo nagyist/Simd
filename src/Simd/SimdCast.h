@@ -21,11 +21,10 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-#ifndef __SimdPack_h__
-#define __SimdPack_h__
+#ifndef __SimdCast_h__
+#define __SimdCast_h__
 
 #include "Simd/SimdDefs.h"
-#include "Simd/SimdCast.h"
 
 namespace Simd
 {
@@ -67,19 +66,14 @@ namespace Simd
 #ifdef SIMD_SVE2_ENABLE    
     namespace Sve2
     {
-        SIMD_INLINE svuint8_t PackSeqI16ToU8(const svint16_t& lo, const svint16_t& hi)
+        SIMD_INLINE svuint8_t To8u(const svint16_t& value)
         {
-            return svuzp1_u8(To8u(lo), To8u(hi));
+            return svreinterpret_u8_s16(value);
         }
 
-        SIMD_INLINE svuint8_t PackSatIntI16ToU8(const svint16_t& even, const svint16_t& odd)
+        SIMD_INLINE svuint8_t To16i(const svuint16_t& value)
         {
-            return svqxtunt_s16(svqxtunb_s16(even), odd);
-        }
-
-        SIMD_INLINE svint16_t PackSatIntI32ToI16(const svint32_t& lo, const svint32_t& hi)
-        {
-            return svqxtnt_s32(svqxtnb_s32(lo), hi);
+            return svreinterpret_s16_u16(value);
         }
     }
 #endif 

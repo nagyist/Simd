@@ -29,13 +29,6 @@ namespace Simd
 #ifdef SIMD_SVE2_ENABLE
     namespace Sve2
     {
-        //SIMD_INLINE svuint8_t PackSequentialI16ToU8(const svint16_t& value)
-        //{
-        //    return PackSatIntI16ToU8(svuzp1_s16(value, value), svuzp2_s16(value, value));
-        //}
-
-        //-------------------------------------------------------------------------------------------------
-
         template <class T> SIMD_INLINE void BgrToYuv444pV2(const uint8_t* bgr, uint8_t* y, uint8_t* u, uint8_t* v, const svbool_t& mask)
         {
             svuint8x3_t _bgr = svld3_u8(mask, bgr);
@@ -100,8 +93,8 @@ namespace Simd
             svuint16_t green = AverageUv(svget3(bgr00, 1), svget3(bgr10, 1), maskY);
             svuint16_t red = AverageUv(svget3(bgr00, 2), svget3(bgr10, 2), maskY);
 
-            svst1_u8(maskUv, u, PackSeqI16ToU8(BgrToU16<T>(svreinterpret_s16_u16(blue), svreinterpret_s16_u16(green), svreinterpret_s16_u16(red)), svundef_s16()));
-            svst1_u8(maskUv, v, PackSeqI16ToU8(BgrToV16<T>(svreinterpret_s16_u16(blue), svreinterpret_s16_u16(green), svreinterpret_s16_u16(red)), svundef_s16()));
+            svst1_u8(maskUv, u, PackSeqI16ToU8(BgrToU16<T>(To16i(blue), To16i(green), To16i(red)), svundef_s16()));
+            svst1_u8(maskUv, v, PackSeqI16ToU8(BgrToV16<T>(To16i(blue), To16i(green), To16i(red)), svundef_s16()));
         }
 
         template <class T> void BgrToYuv420pV2(const uint8_t* bgr, size_t bgrStride, size_t width, size_t height,
@@ -156,8 +149,8 @@ namespace Simd
             svuint16_t green = AverageUv(svget3(_bgr, 1), maskY);
             svuint16_t red = AverageUv(svget3(_bgr, 2), maskY);
 
-            svst1_u8(maskUv, u, PackSeqI16ToU8(BgrToU16<T>(svreinterpret_s16_u16(blue), svreinterpret_s16_u16(green), svreinterpret_s16_u16(red)), svundef_s16()));
-            svst1_u8(maskUv, v, PackSeqI16ToU8(BgrToV16<T>(svreinterpret_s16_u16(blue), svreinterpret_s16_u16(green), svreinterpret_s16_u16(red)), svundef_s16()));
+            svst1_u8(maskUv, u, PackSeqI16ToU8(BgrToU16<T>(To16i(blue), To16i(green), To16i(red)), svundef_s16()));
+            svst1_u8(maskUv, v, PackSeqI16ToU8(BgrToV16<T>(To16i(blue), To16i(green), To16i(red)), svundef_s16()));
         }
 
         template <class T> void BgrToYuv422pV2(const uint8_t* bgr, size_t bgrStride, size_t width, size_t height,
