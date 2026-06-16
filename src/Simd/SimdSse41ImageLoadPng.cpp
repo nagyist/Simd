@@ -337,7 +337,7 @@ namespace Simd
             if (req_comp == img_n) return data;
             PNG_ASSERT(req_comp >= 1 && req_comp <= 4);
 
-            good = (png__uint16*)png__malloc(req_comp * x * y * 2);
+            good = (png__uint16*)png__malloc_mad4(req_comp, x, y, 2, 0);
             if (good == NULL) {
                 PNG_FREE(data);
                 return (png__uint16*)png__errpuc("outofmem", "Out of memory");
