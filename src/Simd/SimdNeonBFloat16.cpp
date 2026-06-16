@@ -70,11 +70,12 @@ namespace Simd
             size_t size8 = Simd::AlignLo(size, 8);
             size_t size4 = Simd::AlignLo(size, 4);
             size_t i = 0;
+            uint16x8x2_t _dst;
+            _dst.val[0] = K16_0000;
             for (; i < size8; i += 8)
             {
-                uint16x8_t s = Load<align>(src + i);
-                Store<align>(dst + i + 0, BFloat16ToFloat32(UnpackU16<0>(s)));
-                Store<align>(dst + i + 4, BFloat16ToFloat32(UnpackU16<1>(s)));
+                _dst.val[1] = Load<align>(src + i);
+                Store2<align>((uint16_t*)(dst + i), _dst);
             }
             for (; i < size4; i += 4)
             {

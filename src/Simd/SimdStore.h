@@ -547,6 +547,25 @@ namespace Simd
 #endif
         }
 
+        template <bool align> SIMD_INLINE void Store2(uint16_t* p, uint16x8x2_t a);
+
+        template <> SIMD_INLINE void Store2<false>(uint16_t* p, uint16x8x2_t a)
+        {
+            vst2q_u16(p, a);
+        }
+
+        template <> SIMD_INLINE void Store2<true>(uint16_t* p, uint16x8x2_t a)
+        {
+#if defined(__GNUC__)
+            uint16_t* _p = (uint16_t*)__builtin_assume_aligned(p, 16);
+            vst2q_u16(_p, a);
+#elif defined(_MSC_VER)
+            vst2q_u16_ex(p, a, 128);
+#else
+            vst2q_u16(p, a);
+#endif
+        }
+
         template <bool align> SIMD_INLINE void Store2(uint8_t * p, uint8x8x2_t a);
 
         template <> SIMD_INLINE void Store2<false>(uint8_t * p, uint8x8x2_t a)
