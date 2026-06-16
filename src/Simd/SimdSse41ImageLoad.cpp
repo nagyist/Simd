@@ -132,6 +132,13 @@ namespace Simd
 
         void ImageBmpLoader::SetConverters()
         {
+            // The vector converters below need width >= A; they process the final
+            // columns as width - A, which wraps in size_t for a narrower row and reads
+            // and writes off the end of it. SetConverters runs before _image exists, so
+            // test _width and keep the scalar Base converters below A, as PXM does.
+            Base::ImageBmpLoader::SetConverters();
+            if (_width < A)
+                return;
             if (_bpp == 8)
             {
                 switch (_param.format)
