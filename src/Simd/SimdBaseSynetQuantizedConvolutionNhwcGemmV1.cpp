@@ -285,7 +285,7 @@ namespace Simd
         {
             size_t K = p.srcC * p.kernelY * p.kernelX;
             size_t M = p.batch * p.dstH * p.dstW;
-            return p.trans != 0 && p.group == 1 && K > 32 && p.srcT == SimdTensorData8u && M < 32;
+            return p.trans != 0 && p.group == 1 && K > 32 && p.srcT == SimdTensorData8u;//&& M < 32;
         }
     }
 #endif
