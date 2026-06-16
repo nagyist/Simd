@@ -656,7 +656,7 @@ namespace Simd
         }
 
         template<Term8iType term, SimdConvolutionActivationType type, int flush, int M, int N> static SIMD_INLINE void ApplyMxN(
-            uint8_t* ptr, size_t dP, int32_t* buf, size_t dB, const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, const __m512i& iHi, 
+            uint8_t* ptr, size_t dP, int32_t* buf, const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, const __m512i& iHi, 
             const __m512& iScale, const __m512* params, const __m512& dNorm, const __m512i& dZero, __mmask32 tail = -1)
         {
             if (N > 0) ApplyMx1<term, type, flush, M>(ptr + 0 * dP, buf + 0 * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tail);

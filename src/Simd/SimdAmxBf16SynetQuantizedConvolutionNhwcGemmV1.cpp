@@ -355,27 +355,227 @@ namespace Simd
 
         //-----------------------------------------------------------------------------------------
 
+        template<Term8iType term, SimdConvolutionActivationType type, int flush, int M, int apply> SIMD_INLINE void QuantizedConvolutionNhwcGemmV1_Gemm1xMx2(
+            const uint8_t* src0, const ConvParam& p, const AlgParam& a, size_t srcC, int update, const int8_t* weight0, const __m512i* sBias, const __m512* sNorm, const __m512i& iLo,
+            const __m512i& iHi, const __m512& iScale, const __m512* params, const __m512& dNorm, const __m512i& dZero, int32_t* buf0, int32_t* buf1, int32_t* buf2, uint8_t* dst, __mmask32 tailD)
+        {
+            //int dD = int(p.dstC * a.elem), dS = (int)a.bufK, dW = 16, strideW = 64;
+            //int stepS = a.reorderType ? 1024 : 64, strideS = a.reorderType ? 64 : dS * 2;
+            //int dB = term == Term8iInterim ? (int)a.dB : DF, strideB = dB * 4;
+            //const uint16_t* src1 = src0 + 16 * dS;
+            //const uint16_t* weight1 = weight0 + a.bufK * F;
+
+            //if (zero)
+            //{
+            //    if (M > 0) _tile_zero(0);
+            //    if (M > 1) _tile_zero(1);
+            //    if (M > 0) _tile_zero(2);
+            //    if (M > 1) _tile_zero(3);
+            //}
+            //else
+            //{
+            //    int dB = (int)a.dB, strideB = dB * 4;
+            //    if (M > 0) _tile_stream_loadd(0, buf0 + 0, strideB);
+            //    if (M > 1) _tile_stream_loadd(1, buf0 + F, strideB);
+            //    buf0 += 16 * dB;
+            //    if (M > 0) _tile_stream_loadd(2, buf0 + 0, strideB);
+            //    if (M > 1) _tile_stream_loadd(3, buf0 + F, strideB);
+            //}
+
+            //int sC32 = (int)srcC - 32, aC32 = apply ? (8 * 32 / apply - 32) : 0, sc = 0, ds = 0;
+
+            //_tile_stream_loadd(4, src0, strideS);
+            //if (M > 0) _tile_loadd(6, weight0 + sc * dW, strideW);
+            //for (; sc < aC32; src1 += stepS)
+            //{
+            //    if (M > 1) _tile_loadd(7, weight1 + sc * dW, strideW);
+            //    if (M > 0) _tile_dpbusd(0, 4, 6);
+            //    ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //    _tile_stream_loadd(5, src1, strideS);
+            //    if (M > 1) _tile_dpbusd(1, 4, 7);
+            //    ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //    src0 += stepS;
+            //    _tile_stream_loadd(4, src0, strideS);
+            //    if (M > 0) _tile_dpbusd(2, 5, 6);
+            //    ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //    sc += 32;
+            //    if (M > 0) _tile_loadd(6, weight0 + sc * dW, strideW);
+            //    if (M > 1) _tile_dpbusd(3, 5, 7);
+            //    ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //}
+            //for (; sc < sC32; src1 += stepS)
+            //{
+            //    if (M > 1) _tile_loadd(7, weight1 + sc * dW, strideW);
+            //    if (M > 0) _tile_dpbusd(0, 4, 6);
+            //    _tile_stream_loadd(5, src1, strideS);
+            //    if (M > 1) _tile_dpbusd(1, 4, 7);
+            //    src0 += stepS;
+            //    _tile_stream_loadd(4, src0, strideS);
+            //    if (M > 0) _tile_dpbusd(2, 5, 6);
+            //    sc += 32;
+            //    if (M > 0) _tile_loadd(6, weight0 + sc * dW, strideW);
+            //    if (M > 1) _tile_dpbusd(3, 5, 7);
+            //}
+            //if (M > 1) _tile_loadd(7, weight1 + sc * dW, strideW);
+            //_tile_stream_loadd(5, src1, strideS);
+            //if (M > 0) _tile_dpbusd(0, 4, 6);
+            //if (apply) ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //if (M > 0) _tile_stored(0, buf2 + 0, strideB);
+            //if (M > 1) _tile_dpbusd(1, 4, 7);
+            //if (apply) ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //if (M > 1) _tile_stored(1, buf2 + F, strideB);
+            //buf2 += 16 * dB;
+            //if (M > 0) _tile_dpbusd(2, 5, 6);
+            //if (apply) ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //if (M > 0) _tile_stored(2, buf2 + 0, strideB);
+            //if (M > 1) _tile_dpbusd(3, 5, 7);
+            //if (apply) ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //if (M > 1) _tile_stored(3, buf2 + F, strideB);
+        }
+
+        template<Term8iType term, SimdConvolutionActivationType type, int flush, int M, int apply> SIMD_INLINE void QuantizedConvolutionNhwcGemmV1_Gemm1xMx1(
+            const uint8_t* src0, const ConvParam& p, const AlgParam& a, size_t srcC, int update, const int8_t* weight0, const __m512i* sBias, const __m512* sNorm, const __m512i& iLo,
+            const __m512i& iHi, const __m512& iScale, const __m512* params, const __m512& dNorm, const __m512i& dZero, int32_t* buf0, int32_t* buf1, int32_t* buf2, uint8_t* dst, __mmask32 tailD)
+        {
+            //int dD = int(p.dstC * a.elem), dS = (int)a.bufK, dW = 16, strideW = 64;
+            //int stepS = a.reorderType ? 1024 : 64, strideS = a.reorderType ? 64 : dS * 2;
+            //int dB = term == Term8iInterim ? (int)a.dB : DF, strideB = dB * 4;
+            //const uint16_t* src1 = src0 + 16 * dS;
+            //const uint16_t* weight1 = weight0 + a.bufK * F;
+
+            //if (zero)
+            //{
+            //    if (M > 0) _tile_zero(0);
+            //    if (M > 1) _tile_zero(1);
+            //}
+            //else
+            //{
+            //    int dB = (int)a.dB, strideB = dB * 4;
+            //    if (M > 0) _tile_stream_loadd(0, buf0 + 0, strideB);
+            //    if (M > 1) _tile_stream_loadd(1, buf0 + F, strideB);
+            //}
+
+            //int sC32 = (int)srcC - 32, aC32 = apply ? (8 * 32 / apply - 32) : 0, sc = 0, ds = 0;
+
+            //_tile_stream_loadd(4, src0, strideS);
+            //if (M > 0) _tile_loadd(6, weight0 + sc * dW, strideW);
+            //for (; sc < aC32;)
+            //{
+            //    if (M > 1) _tile_loadd(7, weight1 + sc * dW, strideW);
+            //    if (M > 0) _tile_dpbusd(0, 4, 6);
+            //    ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //    ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //    sc += 32;
+            //    if (M > 0) _tile_loadd(6, weight0 + sc * dW, strideW);
+            //    if (M > 1) _tile_dpbusd(1, 4, 7);
+            //    ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //    ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //    src0 += stepS;
+            //    _tile_stream_loadd(4, src0, strideS);
+            //}
+            //for (; sc < sC32;)
+            //{
+            //    if (M > 1) _tile_loadd(7, weight1 + sc * dW, strideW);
+            //    if (M > 0) _tile_dpbusd(0, 4, 6);
+            //    sc += 32;
+            //    if (M > 0) _tile_loadd(6, weight0 + sc * dW, strideW);
+            //    if (M > 1) _tile_dpbusd(1, 4, 7);
+            //    src0 += stepS;
+            //    _tile_stream_loadd(4, src0, strideS);
+            //}
+            //if (M > 1) _tile_loadd(7, weight1 + sc * dW, strideW);
+            //if (M > 0) _tile_dpbusd(0, 4, 6);
+            //if (apply) ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //if (apply) ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //if (M > 0) _tile_stored(0, buf2 + 0, strideB);
+            //if (M > 1) _tile_dpbusd(1, 4, 7);
+            //if (apply) ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //if (apply) ApplyMxN<term, type, flush, M, apply>(dst + ds * dD, dD, buf1 + ds * DF, bias, params, tailD), ds += apply;
+            //if (M > 1) _tile_stored(1, buf2 + F, strideB);
+        }
+
+        template<Term8iType term, SimdConvolutionActivationType type, int flush, int M, int apply> void QuantizedConvolutionNhwcGemmV1_GemmNxMx2(const uint8_t* src0, 
+            const ConvParam& p, const AlgParam& a, size_t srcC, size_t dstS, int update, const int8_t* weight0, const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, 
+            const __m512i& iHi, const __m512& iScale, const __m512* params, const __m512& dNorm, const __m512i& dZero, int32_t* sum0, int32_t* buf1, uint8_t* dst, __mmask32 tailD)
+        {
+            int dB = (int)a.dB, dD = int(p.dstC * a.elem), dS = (int)a.bufK;
+            int32_t* buf2 = buf1 + 1024;
+            if (term == Term8iInterim)
+            {
+                for (size_t cds = 0; cds < dstS; cds += 32)
+                {
+                    size_t bds = cds;
+                    if (cds + 16 >= dstS)
+                    {
+                        if (a.reorderType == 0)
+                            cds = Simd::Min(dstS - 16, cds);
+                        QuantizedConvolutionNhwcGemmV1_Gemm1xMx1<term, type, flush, M, 0>(src0 + cds * dS, p, a, srcC, update, weight0, 
+                            sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, sum0 + bds * dB, NULL, sum0 + bds * dB, NULL, tailD);
+                    }
+                    else
+                    {
+                        if (a.reorderType == 0)
+                            cds = Simd::Min(dstS - 32, cds);
+                        QuantizedConvolutionNhwcGemmV1_Gemm1xMx2<term, type, flush, M, 0>(src0 + cds * dS, p, a, srcC, update, weight0, 
+                            sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, sum0 + bds * dB, NULL, sum0 + bds * dB, NULL, tailD);
+                    }
+                }
+            }
+            else
+            {
+                size_t cds = 0, pds = 0;
+                QuantizedConvolutionNhwcGemmV1_Gemm1xMx2<term, type, flush, M, 0>(src0, p, a, srcC, update, weight0, 
+                    sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, sum0, buf1, buf2, dst, tailD), cds += 32;
+                for (; cds < dstS; pds = cds, cds += 32)
+                {
+                    Swap(buf1, buf2);
+                    size_t bds = cds;
+                    if (cds + 16 >= dstS)
+                    {
+                        if (a.reorderType == 0)
+                            cds = Simd::Min(dstS - 16, cds);
+                        QuantizedConvolutionNhwcGemmV1_Gemm1xMx1<term, type, flush, M, apply>(src0 + cds * dS, p, a, srcC, update, weight0, 
+                            sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, sum0 + bds * dB, buf1, buf2, dst + pds * dD, tailD);
+                    }
+                    else
+                    {
+                        if (a.reorderType == 0)
+                            cds = Simd::Min(dstS - 32, cds);
+                        QuantizedConvolutionNhwcGemmV1_Gemm1xMx2<term, type, flush, M, apply>(src0 + cds * dS, p, a, srcC, update, weight0, 
+                            sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, sum0 + bds * dB, buf1, buf2, dst + pds * dD, tailD);
+                    }
+                }
+                uint8_t* dst1 = dst + pds * dD;
+                dstS -= pds;
+                size_t ds = 0, dstS8 = dstS & (~7);
+                for (; ds < dstS8; ds += 8)
+                    ApplyMxN<term, type, flush, M, 8>(dst1 + ds * dD, dD, buf2 + ds * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
+                for (; ds < dstS; ++ds)
+                    ApplyMxN<term, type, flush, M, 1>(dst1 + ds * dD, dD, buf2 + ds * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
+            }
+        }
+
+        //-----------------------------------------------------------------------------------------
+
         template<Term8iType term, SimdConvolutionActivationType type, int flush, int cfg> void QuantizedConvolutionNhwcGemmV1_Gemm2x2(
             const uint8_t* src0, const ConvParam& p, const AlgParam& a, size_t srcC, size_t dstS, size_t dstC, int update, const int8_t* weight0, 
             const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, const __m512i& iHi, const __m512& iScale, const __m512* params, 
-            const __m512& dNorm, const __m512i& dZero, int32_t* sum0, int32_t* buf0, size_t dB, uint8_t* dst, __mmask32 tailD)
+            const __m512& dNorm, const __m512i& dZero, int32_t* sum0, int32_t* buf0, uint8_t* dst, __mmask32 tailD)
         {
-            int dS = (int)a.bufK, dD = int(p.dstC * a.elem), strideW = 64, strideB = (int)dB * 4;
+            int dS = (int)a.bufK, dD = int(p.dstC * a.elem), strideW = 64, strideB = (int)a.dB * 4;
             int stepS = a.reorderType ? 1024 : 64, strideS = a.reorderType ? 64 : dS;
             const uint8_t* src1 = src0 + dS * 16;
             const int8_t* weight1 = weight0 + a.bufK * F;
-            int32_t* buf1 = buf0 + 16 * dB;
+            int32_t* buf1 = buf0 + 16 * DF, * sum1 = sum0 + 16 * a.dB;
 
             if (cfg)
                 SetTileConf2x2(dstS, dstC);
             if (update)
             {
-                int strideS = (int)a.dB * 4;
-                _tile_stream_loadd(0, sum0 + 0, strideS);
-                _tile_stream_loadd(1, sum0 + F, strideS);
-                sum0 += 16 * a.dB;
-                _tile_stream_loadd(2, sum0 + 0, strideS);
-                _tile_stream_loadd(3, sum0 + F, strideS);
+                _tile_stream_loadd(0, sum0 + 0, strideB);
+                _tile_stream_loadd(1, sum0 + F, strideB);
+                _tile_stream_loadd(2, sum1 + 0, strideB);
+                _tile_stream_loadd(3, sum1 + F, strideB);
             }
             else
             {
@@ -408,38 +608,46 @@ namespace Simd
             _tile_dpbusd(2, 5, 6);
             _tile_dpbusd(3, 5, 7);
 
-            _tile_stored(0, buf0 + 0, strideB);
-            _tile_stored(1, buf0 + F, strideB);
-            _tile_stored(2, buf1 + 0, strideB);
-            _tile_stored(3, buf1 + F, strideB);
+            if (term == Term8iInterim)
+            {
+                _tile_stored(0, sum0 + 0, strideB);
+                _tile_stored(1, sum0 + F, strideB);
+                _tile_stored(2, sum1 + 0, strideB);
+                _tile_stored(3, sum1 + F, strideB);
+            }
+            else
+            {
+                _tile_stored(0, buf0 + 0, DA);
+                _tile_stored(1, buf0 + F, DA);
+                _tile_stored(2, buf1 + 0, DA);
+                _tile_stored(3, buf1 + F, DA);
+            }
             if (term == Term8iLast8u)
             {
                 size_t ds = 0, dstS8 = dstS & (~7);
                 for (; ds < dstS8; ds += 8)
-                    ApplyMxN<term, type, flush, 2, 8>(dst + ds * dD, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
+                    ApplyMxN<term, type, flush, 2, 8>(dst + ds * dD, dD, buf0 + ds * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
                 for (; ds < dstS; ++ds)
-                    ApplyMxN<term, type, flush, 2, 1>(dst + ds * dD, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
+                    ApplyMxN<term, type, flush, 2, 1>(dst + ds * dD, dD, buf0 + ds * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
             }
         }
 
         template<Term8iType term, SimdConvolutionActivationType type, int flush, int cfg> void QuantizedConvolutionNhwcGemmV1_Gemm2x1(
             const uint8_t* src0, const ConvParam& p, const AlgParam& a, size_t srcC, size_t dstS, size_t dstC, int update, const int8_t* weight0,
             const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, const __m512i& iHi, const __m512& iScale, const __m512* params,
-            const __m512& dNorm, const __m512i& dZero, int32_t* sum0, int32_t* buf0, size_t dB, uint8_t* dst, __mmask32 tailD)
+            const __m512& dNorm, const __m512i& dZero, int32_t* sum0, int32_t* buf0, uint8_t* dst, __mmask32 tailD)
         {
-            int dS = (int)a.bufK, dD = int(p.dstC * a.elem), strideW = 64, strideB = (int)dB * 4;
+            int dS = (int)a.bufK, dD = int(p.dstC * a.elem), strideW = 64, strideB = (int)a.dB * 4;
             int stepS = a.reorderType ? 1024 : 64, strideS = a.reorderType ? 64 : dS;
             const uint8_t* src1 = src0 + dS * 16;
-            int32_t* buf1 = buf0 + 16 * dB;
+            int32_t* buf1 = buf0 + 16 * DF, * sum1 = sum0 + 16 * a.dB;
 
             if (cfg)
                 SetTileConf2x2(dstS, dstC);
             if (update)
             {
-                int strideS = (int)a.dB * 4;
                 _tile_stream_loadd(0, sum0 + 0, strideS);
-                sum0 += 16 * a.dB;
-                _tile_stream_loadd(2, sum0 + 0, strideS);
+                _tile_stream_loadd(2, sum1 + 0, strideS);
             }
             else
             {
@@ -463,24 +671,32 @@ namespace Simd
             _tile_dpbusd(0, 4, 6);
             _tile_dpbusd(2, 5, 6);
 
-            _tile_stored(0, buf0 + 0, strideB);
-            _tile_stored(2, buf1 + 0, strideB);
+            if (term == Term8iInterim)
+            {
+                _tile_stored(0, sum0 + 0, strideB);
+                _tile_stored(2, sum1 + 0, strideB);
+            }
+            else
+            {
+                _tile_stored(0, buf0 + 0, DA);
+                _tile_stored(2, buf1 + 0, DA);
+            }
             if (term == Term8iLast8u)
             {
                 size_t ds = 0, dstS8 = dstS & (~7);
                 for (; ds < dstS8; ds += 8)
-                    ApplyMxN<term, type, flush, 1, 8>(dst + ds * dD, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
+                    ApplyMxN<term, type, flush, 1, 8>(dst + ds * dD, dD, buf0 + ds * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
                 for (; ds < dstS; ++ds)
-                    ApplyMxN<term, type, flush, 1, 1>(dst + ds * dD, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
+                    ApplyMxN<term, type, flush, 1, 1>(dst + ds * dD, dD, buf0 + ds * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
             }
         }
 
         template<Term8iType term, SimdConvolutionActivationType type, int flush, int cfg> void QuantizedConvolutionNhwcGemmV1_Gemm1x2(
             const uint8_t* src0, const ConvParam& p, const AlgParam& a, size_t srcC, size_t dstS, size_t dstC, int update, const int8_t* weight0,
             const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, const __m512i& iHi, const __m512& iScale, const __m512* params,
-            const __m512& dNorm, const __m512i& dZero, int32_t* sum0, int32_t* buf0, size_t dB, uint8_t* dst, __mmask32 tailD)
+            const __m512& dNorm, const __m512i& dZero, int32_t* sum0, int32_t* buf0, uint8_t* dst, __mmask32 tailD)
         {
-            int dS = (int)a.bufK, dD = int(p.dstC * a.elem), strideW = 64, strideB = (int)dB * 4;
+            int dS = (int)a.bufK, dD = int(p.dstC * a.elem), strideW = 64, strideB = (int)a.dB * 4;
             int stepS = a.reorderType ? 1024 : 64, strideS = a.reorderType ? 64 : dS;
             const int8_t* weight1 = weight0 + a.bufK * F;
 
@@ -488,9 +704,8 @@ namespace Simd
                 SetTileConf2x2(dstS, dstC);
             if (update)
             {
-                int strideS = (int)a.dB * 4;
-                _tile_stream_loadd(0, sum0 + 0, strideS);
-                _tile_stream_loadd(1, sum0 + F, strideS);
+                _tile_stream_loadd(0, sum0 + 0, strideB);
+                _tile_stream_loadd(1, sum0 + F, strideB);
             }
             else
             {
@@ -513,32 +728,39 @@ namespace Simd
             _tile_dpbusd(0, 4, 6);
             _tile_dpbusd(1, 4, 7);
 
-            _tile_stored(0, buf0 + 0, strideB);
-            _tile_stored(1, buf0 + F, strideB);
+            if (term == Term8iInterim)
+            {
+                _tile_stored(0, sum0 + 0, strideB);
+                _tile_stored(1, sum0 + F, strideB);
+            }
+            else
+            {
+                _tile_stored(0, buf0 + 0, DA);
+                _tile_stored(1, buf0 + F, DA);
+            }
             if (term == Term8iLast8u)
             {
                 size_t ds = 0, dstS8 = dstS & (~7);
                 for (; ds < dstS8; ds += 8)
-                    ApplyMxN<term, type, flush, 2, 8>(dst + ds * dD, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
+                    ApplyMxN<term, type, flush, 2, 8>(dst + ds * dD, dD, buf0 + ds * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
                 for (; ds < dstS; ++ds)
-                    ApplyMxN<term, type, flush, 2, 1>(dst + ds * dD, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
+                    ApplyMxN<term, type, flush, 2, 1>(dst + ds * dD, dD, buf0 + ds * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
             }
         }
 
         template<Term8iType term, SimdConvolutionActivationType type, int flush, int cfg> void QuantizedConvolutionNhwcGemmV1_Gemm1x1(
             const uint8_t* src0, const ConvParam& p, const AlgParam& a, size_t srcC, size_t dstS, size_t dstC, int update, const int8_t* weight0,
             const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, const __m512i& iHi, const __m512& iScale, const __m512* params,
-            const __m512& dNorm, const __m512i& dZero, int32_t* sum0, int32_t* buf0, size_t dB, uint8_t* dst, __mmask32 tailD)
+            const __m512& dNorm, const __m512i& dZero, int32_t* sum0, int32_t* buf0, uint8_t* dst, __mmask32 tailD)
         {
-            int dS = (int)a.bufK, dD = int(p.dstC * a.elem), strideW = 64, strideB = (int)dB * 4;
+            int dS = (int)a.bufK, dD = int(p.dstC * a.elem), strideW = 64, strideB = (int)a.dB * 4;
             int stepS = a.reorderType ? 1024 : 64, strideS = a.reorderType ? 64 : dS;
 
             if (cfg)
                 SetTileConf2x2(dstS, dstC);
             if (update)
             {
-                int strideS = (int)a.dB * 4;
-                _tile_stream_loadd(0, sum0 + 0, strideS);
+                _tile_stream_loadd(0, sum0 + 0, strideB);
             }
             else
             {
@@ -553,20 +775,27 @@ namespace Simd
                 _tile_dpbusd(0, 4, 6);
             }
 
-            _tile_stored(0, buf0 + 0, strideB);
+            if (term == Term8iInterim)
+            {
+                _tile_stored(0, sum0 + 0, strideB);
+            }
+            else
+            {
+                _tile_stored(0, buf0 + 0, DA);
+            }
             if (term == Term8iLast8u)
             {
                 size_t ds = 0, dstS8 = dstS & (~7);
                 for (; ds < dstS8; ds += 8)
-                    ApplyMxN<term, type, flush, 1, 8>(dst + ds * dD, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
+                    ApplyMxN<term, type, flush, 1, 8>(dst + ds * dD, dD, buf0 + ds * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
                 for (; ds < dstS; ++ds)
-                    ApplyMxN<term, type, flush, 1, 1>(dst + ds * dD, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
+                    ApplyMxN<term, type, flush, 1, 1>(dst + ds * dD, dD, buf0 + ds * DF, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, tailD);
             }
         }
 
         typedef void (*QuantizedConvolutionNhwcGemmV1_GemmPtr)(const uint8_t* src0, const ConvParam& p, const AlgParam& a, size_t srcC, size_t dstS, 
             size_t dstC, int update, const int8_t* weight0, const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, const __m512i& iHi, 
-            const __m512& iScale, const __m512* params, const __m512& dNorm, const __m512i& dZero, int32_t* sum0, int32_t* buf0, size_t dB, uint8_t* dst, __mmask32 tailD);
+            const __m512& iScale, const __m512* params, const __m512& dNorm, const __m512i& dZero, int32_t* sum0, int32_t* buf0, uint8_t* dst, __mmask32 tailD);
 
         //-----------------------------------------------------------------------------------------
 
@@ -575,7 +804,7 @@ namespace Simd
             const float* sNorm, int32_t iZero, float iScale, const float* params, float dNorm, int32_t dZero, int32_t* sum, int32_t* buf, uint8_t* dst)
         {
             size_t n = 32, Mn = AlignLoAny(M, n), m = M - Mn;
-            size_t dW = a.bufK * DF, dS = a.bufK, dB = (term == Term8iInterim ? a.dB : DF), dD = p.dstC * a.elem;
+            size_t dW = a.bufK * DF, dS = a.bufK, /*dB = (term == Term8iInterim ? a.dB : DF), */dD = p.dstC * a.elem;
 
             __m512 _sNorm[2], _iScale, _params[2], _dNorm;
             __m512i _sBias[2], _dZero = _mm512_set1_epi32(dZero), _iLo, _iHi;
@@ -605,11 +834,13 @@ namespace Simd
                     }
                     __mmask32 tailD = term == Term8iLast8u ? TailMask32(dN) : (__mmask32)TailMask16(dN - AlignLo(dN - 1, 16));
                     buf = (term == Term8iInterim ? sum + j : buf);
-            //        if (dN > F)
-            //            Convolution16bNhwcGemmV2_GemmNxMx2<term, type, flush, 2, apply>(src, p, a, K, M, zero, weight, _bias, _params, sum + j, buf, dst + j * a.elem, tailD);
-            //        else
-            //            Convolution16bNhwcGemmV2_GemmNxMx2<term, type, flush, 1, apply>(src, p, a, K, M, zero, weight, _bias, _params, sum + j, buf, dst + j * a.elem, tailD);
-            //        weight += dW;
+                    if (dN > F)
+                        QuantizedConvolutionNhwcGemmV1_GemmNxMx2<term, type, flush, 2, apply>(src, p, a, K, m, update, weight, 
+                            _sBias, _sNorm, _iLo, _iHi, _iScale, _params, _dNorm, _dZero, sum + j, buf, dst + j * a.elem, tailD);
+                    else
+                        QuantizedConvolutionNhwcGemmV1_GemmNxMx2<term, type, flush, 1, apply>(src, p, a, K, m, update, weight,
+                            _sBias, _sNorm, _iLo, _iHi, _iScale, _params, _dNorm, _dZero, sum + j, buf, dst + j * a.elem, tailD);
+                    weight += dW;
                 }
             }
             else
@@ -636,10 +867,10 @@ namespace Simd
                     buf = (term == Term8iInterim ? sum + j : buf);
                     if (dN > F)
                         tail_2(src, p, a, K, m, dN, update, weight, _sBias, _sNorm, _iLo, _iHi, _iScale, 
-                            _params, _dNorm, _dZero, sum + j, buf, dB, dst + j * a.elem, tailD);
+                            _params, _dNorm, _dZero, sum + j, buf, dst + j * a.elem, tailD);
                     else
                         tail_1(src, p, a, K, m, dN, update, weight, _sBias, _sNorm, _iLo, _iHi, _iScale, 
-                            _params, _dNorm, _dZero, sum + j, buf, dB, dst + j * a.elem, tailD);
+                            _params, _dNorm, _dZero, sum + j, buf, dst + j * a.elem, tailD);
                     weight += dW;
                 }
             }
