@@ -267,8 +267,9 @@ namespace Simd
 
         static void QuantizedConvolutionNhwcGemmV1_ReorderR(const uint8_t* src, uint8_t zero, const ConvParam& p, const AlgParam& a, size_t yBeg, size_t yEnd, uint8_t* dst)
         {
-            assert(Aligned(p.srcC, 64));
-            size_t K = a.bufK, C = p.srcC, kcX = p.kernelX * C;
+            size_t K = a.bufK, C = p.srcC;
+            size_t C64 = AlignLo(C, 64), kcX = p.kernelX * C64;
+            assert(C64 == C);
             __m512i _zero = _mm512_set1_epi8(zero);
             for (size_t dy = yBeg, dr = 0; dy < yEnd; ++dy)
             {
@@ -287,12 +288,12 @@ namespace Simd
                                 if (sx < p.srcW)
                                 {
                                     const uint8_t* ps = src + (sy * p.srcW + sx) * p.srcC;
-                                    for (size_t sc = 0; sc < C; sc += 64, row += 1024)
+                                    for (size_t sc = 0; sc < C64; sc += 64, row += 1024)
                                         Avx512bw::Copy(ps + sc, row);
                                 }
                                 else
                                 {
-                                    for (size_t sc = 0; sc < C; sc += 64, row += 1024)
+                                    for (size_t sc = 0; sc < C64; sc += 64, row += 1024)
                                         SetZero(row, _zero);
                                 }
                             }
@@ -924,7 +925,7 @@ namespace Simd
             else
             {
                 _conv1x1 = NULL;
-                if (Aligned(p.srcC, 64) && a.batch == 1 && Aligned(p.dstW, a.F))
+                if (Aligned(p.srcC, 64) && a.batch == 1 && a.isAlMaH)
                 {
                     _convAny = QuantizedConvolutionNhwcGemmV1_ReorderR;
                     a.reorderType = 1;
