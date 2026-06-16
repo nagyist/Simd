@@ -202,10 +202,10 @@ namespace Simd
                             _conv1x1(src + srcOffs, _srcZero[0], p, a, macroM, tmp + tmpOffs);
                         }
                         if (mak + macroK == a.bufK)
-                            _gemm[1](tmp + tmpOffs, p, a, macroD, macroM, macroK, mak == 0 ? 1 : 0, weight, sBias, sNorm, 
+                            _gemm[1](tmp + tmpOffs, p, a, macroD, macroM, macroK, mak == 0 ? 0 : 1, weight, sBias, sNorm, 
                                 _intZero, _intScale, params, dNorm, _dstZero, sum + sumOffs, buf, dst + dstOffs);
                         else
-                            _gemm[0](tmp + tmpOffs, p, a, macroD, macroM, macroK, mak == 0 ? 1 : 0, weight, sBias, sNorm, 
+                            _gemm[0](tmp + tmpOffs, p, a, macroD, macroM, macroK, mak == 0 ? 0 : 1, weight, sBias, sNorm, 
                                 _intZero, _intScale, params, dNorm, _dstZero, sum + sumOffs, buf, dst + dstOffs);
                     }
                     weight += macroK * a.F;
@@ -261,10 +261,10 @@ namespace Simd
                         if (yEnd < dstH)
                             macroM = AlignLo(macroM, a.microM);
                         if (mak + macroK == a.bufK)
-                            _gemm[1](tmp + tmpOffs, p, a, macroD, macroM, macroK, mak == 0 ? 1 : 0, weight, sBias, sNorm, 
+                            _gemm[1](tmp + tmpOffs, p, a, macroD, macroM, macroK, mak == 0 ? 0 : 1, weight, sBias, sNorm, 
                                 _intZero, _intScale, params, dNorm, _dstZero, sum + sumOffs, buf, dst + dstOffs);
                         else
-                            _gemm[0](tmp + tmpOffs, p, a, macroD, macroM, macroK, mak == 0 ? 1 : 0, weight, sBias, sNorm, 
+                            _gemm[0](tmp + tmpOffs, p, a, macroD, macroM, macroK, mak == 0 ? 0 : 1, weight, sBias, sNorm, 
                                 _intZero, _intScale, params, dNorm, _dstZero, sum + sumOffs, buf, dst + dstOffs);
                         yBeg = yEnd;
                         i += macroM;
@@ -284,7 +284,8 @@ namespace Simd
         bool SynetQuantizedConvolutionNhwcGemmV1::Preferable(const ConvParam& p)
         {
             size_t K = p.srcC * p.kernelY * p.kernelX;
-            return p.trans != 0 && p.group == 1 && K > 32 && p.srcT == SimdTensorData8u;
+            size_t M = p.batch * p.dstH * p.dstW;
+            return p.trans != 0 && p.group == 1 && K > 32 && p.srcT == SimdTensorData8u && M < 32;
         }
     }
 #endif
