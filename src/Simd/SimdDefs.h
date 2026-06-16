@@ -294,12 +294,8 @@
 #include <arm_neon.h>
 #endif
 
-#if defined(SIMD_SVE_ENABLE)
+#if defined(SIMD_SVE_ENABLE) || defined(SIMD_SVE2_ENABLE)
 #include <arm_sve.h>
-#endif
-
-#if defined(SIMD_SVE2_ENABLE)
-//#include <arm_sve2.h>
 #endif
 
 #if defined(SIMD_HVX_ENABLE)
