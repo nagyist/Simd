@@ -15,7 +15,7 @@ jobs:
         build_type: [Debug, Release]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Host properties
       run: lscpu
@@ -37,7 +37,7 @@ jobs:
         build_type: [Debug, Release]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Host properties
       run: lscpu
@@ -59,7 +59,7 @@ jobs:
         build_type: [Debug, Release]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
 
     - name: Host properties
       run: lscpu
@@ -97,7 +97,7 @@ jobs:
         build_type: [Debug, Release]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Host properties
       run: lscpu
@@ -134,7 +134,7 @@ jobs:
         build_type: [Debug, Release]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Host properties
       run: lscpu
@@ -161,7 +161,7 @@ jobs:
         build_type: [Debug, Release]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Host properties
       run: lscpu
@@ -188,7 +188,7 @@ jobs:
         build_type: [Debug, Release]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Host properties
       run: lscpu
@@ -226,7 +226,7 @@ jobs:
       HEXAGON_TOOLCHAIN: ${{github.workspace}}/clang+llvm-22.1.0-cross-hexagon-unknown-linux-musl/x86_64-linux-gnu
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Host properties
       run: lscpu
@@ -270,7 +270,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Setup MSYS
       uses: msys2/setup-msys2@v2

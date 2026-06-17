@@ -41,6 +41,9 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
+    <ClCompile Condition="'$(Platform)'=='Win32'">
+      <PreprocessorDefinitions>SIMD_SYNET_DISABLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Condition="'$(Configuration)'=='Debug'">
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SIMD_AMX_EMULATE2;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>

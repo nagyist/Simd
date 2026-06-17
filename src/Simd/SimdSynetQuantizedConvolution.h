@@ -179,25 +179,26 @@ namespace Simd
             {
                 size_t batch, K, M;
                 size_t F, microD, microM, microK;
-                size_t macroD, macroH, macroK;
+                size_t macroD, macroH, macroM, macroK;
                 size_t bufD, bufM, bufK, elem, dB;
-                int reorderType, sumBuf;
+                int tmpBuf, sumBuf, reorderType, isAlMaH;
             };
 
             typedef void(*ConvAnyPtr)(const uint8_t* src, uint8_t zero, const ConvParam& p, const AlgParam& a, size_t yBeg, size_t yEnd, uint8_t* dst);
 
             typedef void(*Conv1x1Ptr)(const uint8_t* src, uint8_t zero, const ConvParam& p, const AlgParam& a, size_t M, uint8_t* dst);
 
-            typedef void(*GemmPtr)(const uint8_t* src, const ConvParam& p, const AlgParam& a, size_t dstC, size_t dstH, size_t srcC, int update, const int8_t* weight,
-                const int32_t* sBias, const float* sNorm, int32_t iZero, float iScale, const float* params, float dNorm, int32_t dZero, int32_t* sum, uint8_t* dst);
+            typedef void(*GemmPtr)(const uint8_t* src, const ConvParam& p, const AlgParam& a, size_t N, size_t M, size_t K, int update, const int8_t* weight, 
+                const int32_t* sBias, const float* sNorm, int32_t iZero, float iScale, const float* params, float dNorm, int32_t dZero, int32_t* sum, int32_t* buf, uint8_t* dst);
 
         protected:
-            void SetAlgParam(size_t F, size_t microD, size_t microM, size_t microK, size_t L1, size_t L2, size_t L3);
+            void SetAlgParam();
 
             virtual void SetWeight(const int8_t* weight);
 
             virtual void Forward(const uint8_t* src, uint8_t* buf, uint8_t* dst);
-            void Forward(const uint8_t* src, uint8_t* buf, int32_t* sum, uint8_t* dst);
+            void Forward1x1(const uint8_t* src, uint8_t* tmp, size_t batch, int32_t* sum, int32_t* buf, uint8_t* dst);
+            void ForwardAny(const uint8_t* src, uint8_t* tmp, size_t batch, int32_t* sum, int32_t* buf, uint8_t* dst);
 
             AlgParam _alg;
             ConvAnyPtr _convAny;
@@ -633,6 +634,15 @@ namespace Simd
 
         //------------------------------------------------------------------------------------------------
 
+        class SynetQuantizedConvolutionNhwcGemmV1 : public Base::SynetQuantizedConvolutionNhwcGemmV1
+        {
+        public:
+            SynetQuantizedConvolutionNhwcGemmV1(const ConvParam& p);
+
+            virtual String Ext() const { return _alg.microK == 64 ? "AmxBf16" : "Avx512vnni"; }
+        };
+
+        //------------------------------------------------------------------------------------------------
         class SynetQuantizedConvolutionNhwcSpecV0 : public Avx512vnni::SynetQuantizedConvolutionNhwcSpecV0
         {
         public:

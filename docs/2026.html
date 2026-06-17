@@ -42,18 +42,44 @@
 <h5>New features</h5>
 <ul>
  <li>Support of SVE2 extension (ARM/ARM64 platform).</li>
+ <li>SVE2 optimizations of function BFloat16ToFloat32.</li>
+ <li>SVE2 optimizations of function CosineDistance16f.</li>
+ <li>SVE2 optimizations of function CosineDistancesMxNa16f.</li>
+ <li>SVE2 optimizations of function CosineDistancesMxNp16f.</li>
+ <li>SVE2 optimizations of function CosineDistance32f.</li>
+ <li>SVE2 optimizations of function DescrIntEncode32f.</li>
+ <li>SVE2 optimizations of function DescrIntCosineDistance.</li>
+ <li>SVE2 optimizations of function DescrIntCosineDistancesMxNa.</li>
+ <li>SVE2 optimizations of function DescrIntCosineDistancesMxNp.</li>
  <li>SVE2 optimizations of function BgrToBgra.</li>
  <li>SVE2 optimizations of function BgraToBgr.</li>
+ <li>SVE2 optimizations of function BgraToRgb.</li>
+ <li>SVE2 optimizations of function BgraToRgba.</li>
  <li>SVE2 optimizations of function BgrToGray.</li>
+ <li>SVE2 optimizations of function BgrToRgb.</li>
  <li>SVE2 optimizations of function RgbToGray.</li>
  <li>SVE2 optimizations of function BgraToGray.</li>
  <li>SVE2 optimizations of function RgbaToGray.</li>
+ <li>SVE2 optimizations of function BgraToYuv420pV2.</li>
+ <li>SVE2 optimizations of function BgraToYuv422pV2.</li>
+ <li>SVE2 optimizations of function BgraToYuv444pV2.</li>
+ <li>SVE2 optimizations of function BgraToYuva420pV2.</li>
  <li>SVE2 optimizations of function Bgr48pToBgra32.</li>
+ <li>SVE2 optimizations of function BgrToHsl.</li>
+ <li>SVE2 optimizations of function BgrToHsv.</li>
+ <li>SVE2 optimizations of function BgrToLab.</li>
+ <li>SVE2 optimizations of function BgrToYuv420pV2.</li>
+ <li>SVE2 optimizations of function BgrToYuv422pV2.</li>
+ <li>SVE2 optimizations of function BgrToYuv444pV2.</li>
  <li>SVE2 optimizations of function Reorder16bit.</li>
  <li>SVE2 optimizations of function Reorder32bit.</li>
  <li>SVE2 optimizations of function Reorder64bit.</li>
  <li>SVE2 optimizations of function BayerToBgr.</li>
  <li>SVE2 optimizations of function BayerToBgra.</li>
+ <li>SVE2 optimizations of function BgraToBayer.</li>
+ <li>SVE2 optimizations of function BgrToBayer.</li>
+ <li>SVE2 optimizations of function Base64Decode.</li>
+ <li>SVE2 optimizations of function Base64Encode.</li>
  <li>SVE2 optimizations of function ValueSum.</li>
  <li>SVE2 optimizations of function SquareSum.</li>
  <li>SVE2 optimizations of function ValueSquareSum.</li>
@@ -64,19 +90,52 @@
  <li>SVE2 optimizations of function ConditionalSum.</li>
  <li>SVE2 optimizations of function ConditionalSquareSum.</li>
  <li>SVE2 optimizations of function ConditionalSquareGradientSum.</li>
+ <li>SVE2 optimizations of function ConditionalFill.</li>
+ <li>SVE2 optimizations of function AbsSecondDerivativeHistogram.</li>
  <li>SVE2 optimizations of function AddFeatureDifference.</li>
  <li>SVE2 optimizations of function AlphaBlending.</li>
+ <li>SVE2 optimizations of function AlphaBlending2x.</li>
+ <li>SVE2 optimizations of function AlphaBlendingBgraToYuv420p.</li>
+ <li>SVE2 optimizations of function AlphaBlendingUniform.</li>
+ <li>SVE2 optimizations of function AlphaFilling.</li>
+ <li>SVE2 optimizations of function AlphaPremultiply.</li>
+ <li>SVE2 optimizations of function AlphaUnpremultiply.</li>
+ <li>SVE2 optimizations of function BackgroundGrowRangeSlow.</li>
+ <li>SVE2 optimizations of function BackgroundGrowRangeFast.</li>
  <li>SVE2 optimizations of function BackgroundAdjustRangeMasked.</li>
  <li>SVE2 optimizations of function BackgroundAdjustRange.</li>
  <li>SVE2 optimizations of function BackgroundShiftRange.</li>
  <li>SVE2 optimizations of function BackgroundShiftRangeMasked.</li>
  <li>SVE2 optimizations of function BackgroundInitMask.</li>
+ <li>SVE2 optimizations of function Binarization.</li>
+ <li>SVE2 optimizations of function AveragingBinarization.</li>
+ <li>SSE4.1, AVX2, AVX-512BW, NEON, SVE2 optimizations of function AveragingBinarizationV2.</li>
+ <li>SVE2 optimizations of function ContourMetrics.</li>
+ <li>SVE2 optimizations of function ContourMetricsMasked.</li>
+ <li>SVE2 optimizations of function ContourAnchors.</li>
+ <li>Support of RISCV/RISCV64 platform.</li>
+ <li>Base implementation, AMX-BF16 optimizations of class SynetQuantizedConvolutionNhwcGemmV1.</li>
+</ul>
+<h5>Improving</h5>
+<ul>
+ <li>NEON optimizations of function BFloat16ToFloat32.</li>
+</ul>
+<h5>Removing</h5>
+<ul>
+ <li>SVE optimization of function BgrToRgb.</li>
+ <li>SVE optimization of function BackgroundGrowRangeSlow.</li>
+ <li>SVE optimization of function BackgroundGrowRangeFast.</li>
+ <li>Synet support for Visual Studio (32-bit platform).</li>
 </ul>
 <h5>Bug fixing</h5>
 <ul>
  <li>Crash in SSE4.1, AVX2, AVX-512BW, NEON optimizations of class SynetMergedConvolution32fCdc.</li>
  <li>Crash in SSE4.1, AVX2, AVX-512BW, AMX-BF16 optimizations of class SynetMergedConvolution16bCdc.</li>
  <li>Crash in SSE4.1, AVX2, AVX-512BW optimizations of class SynetMergedConvolution8iCdc.</li>
+ <li>Compiler error when disabled SIMD_SYNET option.</li>
+ <li>Compiler error when disabled SIMD_AVX512VNNI option.</li>
+ <li>Compiler error when disabled SIMD_AMXBF16 option.</li>
+ <li>Compiler error when disabled SIMD_AMXBF16 option on machine with AMX.</li>
 </ul>
 <h5>Renaming</h5>
 <ul>
@@ -89,10 +148,10 @@
  <li>Crash in Error in MakeAutoTests.</li>
 </ul>
 
-
 <h4>Documentation</h4>
 <h5>Improving</h5>
 <ul>
+ <li>Description of structure Simd::Allocator.</li>
  <li>Description of type SimdBayerLayoutType.</li>
  <li>Description of type SimdBool.</li>
  <li>Description of type SimdCompareType.</li>
@@ -120,6 +179,8 @@
  <li>Description of type SimdTransformType.</li>
  <li>Description of type SimdWarpAffineFlags.</li>
  <li>Description of type SimdYuvType.</li>
+ <li>Description of structure Simd::ContourDetector.</li>
+ <li>Description of structure Simd::Detection.</li>
  <li>Description of structure SimdConvolutionParameters.</li>
  <li>Description of function SimdBgrToLab.</li>
  <li>Description of function SimdBgrToRgb.</li>
@@ -164,6 +225,13 @@
  <li>Description of function SimdDetectionLbpDetect16ii.</li>
  <li>Description of function SimdDrawLine.</li>
  <li>Description of function SimdDrawRectangle.</li>
+ <li>Description of function Simd::DrawLine.</li>
+ <li>Description of function Simd::DrawRectangle.</li>
+ <li>Description of function Simd::DrawFilledRectangle.</li>
+ <li>Description of function Simd::DrawPolygon.</li>
+ <li>Description of function Simd::DrawFilledPolygon.</li>
+ <li>Description of function Simd::DrawEllipse.</li>
+ <li>Description of function Simd::DrawCircle.</li>
  <li>Description of function SimdFill.</li>
  <li>Description of function SimdFillFrame.</li>
  <li>Description of function SimdFillBgr.</li>

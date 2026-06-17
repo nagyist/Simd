@@ -1,7 +1,7 @@
 /*
 * Tests for Simd Library (http://ermig1979.github.io/Simd).
 *
-* Copyright (c) 2011-2025 Yermalayeu Ihar.
+* Copyright (c) 2011-2026 Yermalayeu Ihar.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -220,6 +220,11 @@ namespace Test
             result = result && AlphaBlending2xAutoTest(FUNC_AB2(Simd::Avx512bw::AlphaBlending2x), FUNC_AB2(SimdAlphaBlending2x));
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && AlphaBlending2xAutoTest(FUNC_AB2(Simd::Sve2::AlphaBlending2x), FUNC_AB2(SimdAlphaBlending2x));
+#endif
+
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options) && W >= Simd::Neon::A)
             result = result && AlphaBlending2xAutoTest(FUNC_AB2(Simd::Neon::AlphaBlending2x), FUNC_AB2(SimdAlphaBlending2x));
@@ -319,6 +324,11 @@ namespace Test
             result = result && AlphaBlendingBgraToYuv420pAutoTest(FUNC_ABBY(Simd::Avx512bw::AlphaBlendingBgraToYuv420p), FUNC_ABBY(SimdAlphaBlendingBgraToYuv420p));
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && AlphaBlendingBgraToYuv420pAutoTest(FUNC_ABBY(Simd::Sve2::AlphaBlendingBgraToYuv420p), FUNC_ABBY(SimdAlphaBlendingBgraToYuv420p));
+#endif
+
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options) && W >= Simd::Neon::A)
             result = result && AlphaBlendingBgraToYuv420pAutoTest(FUNC_ABBY(Simd::Neon::AlphaBlendingBgraToYuv420p), FUNC_ABBY(SimdAlphaBlendingBgraToYuv420p));
@@ -412,6 +422,11 @@ namespace Test
         if (Simd::Avx512bw::Enable && TestAvx512bw(options))
             result = result && AlphaBlendingUniformAutoTest(FUNC_ABU(Simd::Avx512bw::AlphaBlendingUniform), FUNC_ABU(SimdAlphaBlendingUniform));
 #endif 
+
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && AlphaBlendingUniformAutoTest(FUNC_ABU(Simd::Sve2::AlphaBlendingUniform), FUNC_ABU(SimdAlphaBlendingUniform));
+#endif
 
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options) && W >= Simd::Neon::A)
@@ -508,6 +523,11 @@ namespace Test
             result = result && AlphaFillingAutoTest(FUNC_AF(Simd::Avx512bw::AlphaFilling), FUNC_AF(SimdAlphaFilling));
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && AlphaFillingAutoTest(FUNC_AF(Simd::Sve2::AlphaFilling), FUNC_AF(SimdAlphaFilling));
+#endif
+
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options) && W >= Simd::Neon::A)
             result = result && AlphaFillingAutoTest(FUNC_AF(Simd::Neon::AlphaFilling), FUNC_AF(SimdAlphaFilling));
@@ -599,6 +619,11 @@ namespace Test
             result = result && AlphaPremultiplyAutoTest(false, FUNC_AP(Simd::Avx512bw::AlphaPremultiply), FUNC_AP(SimdAlphaPremultiply));
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && AlphaPremultiplyAutoTest(false, FUNC_AP(Simd::Sve2::AlphaPremultiply), FUNC_AP(SimdAlphaPremultiply));
+#endif
+
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))
             result = result && AlphaPremultiplyAutoTest(false, FUNC_AP(Simd::Neon::AlphaPremultiply), FUNC_AP(SimdAlphaPremultiply));
@@ -628,6 +653,11 @@ namespace Test
         if (Simd::Avx512bw::Enable && TestAvx512bw(options))
             result = result && AlphaPremultiplyAutoTest(true, FUNC_AP(Simd::Avx512bw::AlphaUnpremultiply), FUNC_AP(SimdAlphaUnpremultiply));
 #endif 
+
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && AlphaPremultiplyAutoTest(true, FUNC_AP(Simd::Sve2::AlphaUnpremultiply), FUNC_AP(SimdAlphaUnpremultiply));
+#endif
 
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))

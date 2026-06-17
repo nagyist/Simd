@@ -88,6 +88,22 @@ if(UNIX AND NOT APPLE AND ((CMAKE_CXX_COMPILER_ID MATCHES "GNU") OR (CMAKE_CXX_C
 	endif()
 endif()
 
+if(NOT SIMD_AVX512)
+	add_definitions(-DSIMD_AVX512BW_DISABLE)
+endif()
+
+if(NOT SIMD_AVX512VNNI)
+	add_definitions(-DSIMD_AVX512VNNI_DISABLE)
+endif()
+
+if(NOT SIMD_AMXBF16)
+	add_definitions(-DSIMD_AMXBF16_DISABLE)
+endif()
+
+if(NOT SIMD_SVE2)
+	add_definitions(-DSIMD_SVE2_DISABLE)
+endif()
+
 if(NOT SIMD_SYNET)
 	add_definitions(-DSIMD_SYNET_DISABLE)
 endif()

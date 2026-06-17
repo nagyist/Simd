@@ -266,5 +266,35 @@ namespace Simd
         void* DescrIntInit(size_t size, size_t depth);
     }
 #endif
+
+#ifdef SIMD_SVE2_ENABLE
+    namespace Sve2
+    {
+#ifdef SIMD_NEON_ENABLE
+        class DescrInt : public Neon::DescrInt
+#else
+        class DescrInt : public Base::DescrInt
+#endif
+        {
+        public:
+            DescrInt(size_t size, size_t depth);
+        };
+
+        //-------------------------------------------------------------------------------------------------
+
+        Base::DescrInt::Encode32fPtr GetEncode32f(size_t depth);
+
+        Base::DescrInt::CosineDistancePtr GetCosineDistance(size_t depth);
+        Base::DescrInt::MacroCosineDistancesDirectPtr GetMacroCosineDistancesDirect(size_t depth);
+
+        Base::DescrInt::UnpackNormPtr GetUnpackNorm(bool transpose);
+        Base::DescrInt::UnpackDataPtr GetUnpackData(size_t depth);
+        Base::DescrInt::MacroCosineDistancesUnpackPtr GetMacroCosineDistancesUnpack(size_t depth);
+
+        //-------------------------------------------------------------------------------------------------
+
+        void* DescrIntInit(size_t size, size_t depth);
+    }
+#endif
 }
 #endif//__SimdDescrInt_h__

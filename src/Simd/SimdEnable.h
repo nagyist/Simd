@@ -60,7 +60,7 @@ namespace Simd
     }
 #endif
 
-#if defined(SIMD_AVX512VNNI_ENABLE) && !defined(SIMD_AMX_EMULATE)
+#if defined(SIMD_AVX512VNNI_ENABLE) || (defined(SIMD_AVX512BW_ENABLE) && defined(SIMD_AMX_EMULATE))
     namespace Avx512vnni
     {
         bool GetEnable();
@@ -155,6 +155,12 @@ namespace Simd
 #define SIMD_NEON_FUNC(func) Simd::Neon::Enable ? Simd::Neon::func :
 #else
 #define SIMD_NEON_FUNC(func)
+#endif
+
+#ifdef SIMD_SVE2_ENABLE
+#define SIMD_SVE2_FUNC(func) Simd::Sve2::Enable ? Simd::Sve2::func :
+#else
+#define SIMD_SVE2_FUNC(func)
 #endif
 
 #ifdef SIMD_HVX_ENABLE

@@ -38,6 +38,44 @@ namespace Simd
         void AlphaBlending(const uint8_t* src, size_t srcStride, size_t width, size_t height, size_t channelCount,
             const uint8_t* alpha, size_t alphaStride, uint8_t* dst, size_t dstStride);
 
+        void AlphaBlending2x(const uint8_t* src0, size_t src0Stride, const uint8_t* alpha0, size_t alpha0Stride,
+            const uint8_t* src1, size_t src1Stride, const uint8_t* alpha1, size_t alpha1Stride,
+            size_t width, size_t height, size_t channelCount, uint8_t* dst, size_t dstStride);
+
+        void AlphaBlendingBgraToYuv420p(const uint8_t* bgra, size_t bgraStride, size_t width, size_t height,
+            uint8_t* y, size_t yStride, uint8_t* u, size_t uStride, uint8_t* v, size_t vStride, SimdYuvType yuvType);
+
+        void AlphaBlendingUniform(const uint8_t* src, size_t srcStride, size_t width, size_t height, size_t channelCount,
+            uint8_t alpha, uint8_t* dst, size_t dstStride);
+
+        void AlphaFilling(uint8_t* dst, size_t dstStride, size_t width, size_t height, const uint8_t* channel,
+            size_t channelCount, const uint8_t* alpha, size_t alphaStride);
+
+        void AlphaPremultiply(const uint8_t* src, size_t srcStride, size_t width, size_t height,
+            uint8_t* dst, size_t dstStride, SimdBool argb);
+
+        void AlphaUnpremultiply(const uint8_t* src, size_t srcStride, size_t width, size_t height,
+            uint8_t* dst, size_t dstStride, SimdBool argb);
+
+        void Binarization(const uint8_t* src, size_t srcStride, size_t width, size_t height,
+            uint8_t value, uint8_t positive, uint8_t negative, uint8_t* dst, size_t dstStride, SimdCompareType compareType);
+
+        void AveragingBinarization(const uint8_t* src, size_t srcStride, size_t width, size_t height,
+            uint8_t value, size_t neighborhood, uint8_t threshold, uint8_t positive, uint8_t negative,
+            uint8_t* dst, size_t dstStride, SimdCompareType compareType);
+
+        void AveragingBinarizationV2(const uint8_t* src, size_t srcStride, size_t width, size_t height,
+            size_t neighborhood, int32_t shift, uint8_t positive, uint8_t negative, uint8_t* dst, size_t dstStride);
+
+        void AbsSecondDerivativeHistogram(const uint8_t* src, size_t width, size_t height, size_t stride,
+            size_t step, size_t indent, uint32_t* histogram);
+
+        void BackgroundGrowRangeSlow(const uint8_t* value, size_t valueStride, size_t width, size_t height,
+            uint8_t* lo, size_t loStride, uint8_t* hi, size_t hiStride);
+
+        void BackgroundGrowRangeFast(const uint8_t* value, size_t valueStride, size_t width, size_t height,
+            uint8_t* lo, size_t loStride, uint8_t* hi, size_t hiStride);
+
         void BackgroundIncrementCount(const uint8_t* value, size_t valueStride, size_t width, size_t height,
             const uint8_t* loValue, size_t loValueStride, const uint8_t* hiValue, size_t hiValueStride,
             uint8_t* loCount, size_t loCountStride, uint8_t* hiCount, size_t hiCountStride);
@@ -62,17 +100,69 @@ namespace Simd
         void BayerToBgr(const uint8_t* bayer, size_t width, size_t height, size_t bayerStride, SimdPixelFormatType bayerFormat, uint8_t* bgr, size_t bgrStride);
 
         void BayerToBgra(const uint8_t* bayer, size_t width, size_t height, size_t bayerStride, SimdPixelFormatType bayerFormat, uint8_t* bgra, size_t bgraStride, uint8_t alpha);
+
+        void Base64Decode(const uint8_t* src, size_t srcSize, uint8_t* dst, size_t* dstSize);
+
+        void Base64Encode(const uint8_t* src, size_t size, uint8_t* dst);
+
+        void BFloat16ToFloat32(const uint16_t* src, size_t size, float* dst);
+
+        void CosineDistance16f(const uint16_t* a, const uint16_t* b, size_t size, float* distance);
+
+        void CosineDistancesMxNa16f(size_t M, size_t N, size_t K, const uint16_t* const* A, const uint16_t* const* B, float* distances);
+
+        void CosineDistancesMxNp16f(size_t M, size_t N, size_t K, const uint16_t* A, const uint16_t* B, float* distances);
+
+        void CosineDistance32f(const float* a, const float* b, size_t size, float* distance);
       
         void BgraToBgr(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* bgr, size_t bgrStride);
 
+        void BgraToBayer(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* bayer, size_t bayerStride, SimdPixelFormatType bayerFormat);
+
         void BgraToGray(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* gray, size_t grayStride);
+
+        void BgraToRgb(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgb, size_t rgbStride);
+
+        void BgraToRgba(const uint8_t* bgra, size_t width, size_t height, size_t bgraStride, uint8_t* rgba, size_t rgbaStride);
+
+        void BgraToYuv420pV2(const uint8_t* bgra, size_t bgraStride, size_t width, size_t height,
+            uint8_t* y, size_t yStride, uint8_t* u, size_t uStride, uint8_t* v, size_t vStride, SimdYuvType yuvType);
+
+        void BgraToYuv422pV2(const uint8_t* bgra, size_t bgraStride, size_t width, size_t height,
+            uint8_t* y, size_t yStride, uint8_t* u, size_t uStride, uint8_t* v, size_t vStride, SimdYuvType yuvType);
+
+        void BgraToYuv444pV2(const uint8_t* bgra, size_t bgraStride, size_t width, size_t height,
+            uint8_t* y, size_t yStride, uint8_t* u, size_t uStride, uint8_t* v, size_t vStride, SimdYuvType yuvType);
+
+        void BgraToYuva420pV2(const uint8_t* bgra, size_t bgraStride, size_t width, size_t height,
+            uint8_t* y, size_t yStride, uint8_t* u, size_t uStride, uint8_t* v, size_t vStride,
+            uint8_t* a, size_t aStride, SimdYuvType yuvType);
 
         void Bgr48pToBgra32(const uint8_t* blue, size_t blueStride, size_t width, size_t height,
             const uint8_t* green, size_t greenStride, const uint8_t* red, size_t redStride, uint8_t* bgra, size_t bgraStride, uint8_t alpha);
 
+        void BgrToBayer(const uint8_t* bgr, size_t width, size_t height, size_t bgrStride, uint8_t* bayer, size_t bayerStride, SimdPixelFormatType bayerFormat);
+
         void BgrToBgra(const uint8_t* bgr, size_t width, size_t height, size_t bgrStride, uint8_t* bgra, size_t bgraStride, uint8_t alpha);
 
         void BgrToGray(const uint8_t* bgr, size_t width, size_t height, size_t bgrStride, uint8_t* gray, size_t grayStride);
+
+        void BgrToHsl(const uint8_t* bgr, size_t width, size_t height, size_t bgrStride, uint8_t* hsl, size_t hslStride);
+
+        void BgrToHsv(const uint8_t* bgr, size_t width, size_t height, size_t bgrStride, uint8_t* hsv, size_t hsvStride);
+
+        void BgrToLab(const uint8_t* bgr, size_t bgrStride, size_t width, size_t height, uint8_t* lab, size_t labStride);
+
+        void BgrToRgb(const uint8_t* bgr, size_t width, size_t height, size_t bgrStride, uint8_t* rgb, size_t rgbStride);
+
+        void BgrToYuv420pV2(const uint8_t* bgr, size_t bgrStride, size_t width, size_t height,
+            uint8_t* y, size_t yStride, uint8_t* u, size_t uStride, uint8_t* v, size_t vStride, SimdYuvType yuvType);
+
+        void BgrToYuv422pV2(const uint8_t* bgr, size_t bgrStride, size_t width, size_t height,
+            uint8_t* y, size_t yStride, uint8_t* u, size_t uStride, uint8_t* v, size_t vStride, SimdYuvType yuvType);
+
+        void BgrToYuv444pV2(const uint8_t* bgr, size_t bgrStride, size_t width, size_t height,
+            uint8_t* y, size_t yStride, uint8_t* u, size_t uStride, uint8_t* v, size_t vStride, SimdYuvType yuvType);
 
         void ConditionalCount8u(const uint8_t* src, size_t stride, size_t width, size_t height, uint8_t value, SimdCompareType compareType, uint32_t* count);
 
@@ -83,6 +173,16 @@ namespace Simd
         void ConditionalSquareSum(const uint8_t* src, size_t srcStride, size_t width, size_t height, const uint8_t* mask, size_t maskStride, uint8_t value, SimdCompareType compareType, uint64_t* sum);
 
         void ConditionalSquareGradientSum(const uint8_t* src, size_t srcStride, size_t width, size_t height, const uint8_t* mask, size_t maskStride, uint8_t value, SimdCompareType compareType, uint64_t* sum);
+
+        void ConditionalFill(const uint8_t* src, size_t srcStride, size_t width, size_t height, uint8_t threshold, SimdCompareType compareType, uint8_t value, uint8_t* dst, size_t dstStride);
+
+        void ContourMetrics(const uint8_t* src, size_t srcStride, size_t width, size_t height, uint8_t* dst, size_t dstStride);
+
+        void ContourMetricsMasked(const uint8_t* src, size_t srcStride, size_t width, size_t height,
+            const uint8_t* mask, size_t maskStride, uint8_t indexMin, uint8_t* dst, size_t dstStride);
+
+        void ContourAnchors(const uint8_t* src, size_t srcStride, size_t width, size_t height,
+            size_t step, int16_t threshold, uint8_t* dst, size_t dstStride);
 
         void CorrelationSum(const uint8_t* a, size_t aStride, const uint8_t* b, size_t bStride, size_t width, size_t height, uint64_t* sum);
 

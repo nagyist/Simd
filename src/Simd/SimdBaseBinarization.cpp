@@ -154,6 +154,8 @@ namespace Simd
             }
         }
 
+        //--------------------------------------------------------------------------------------------------
+
         void AveragingBinarizationV2(const uint8_t* src, size_t srcStride, size_t width, size_t height,
             size_t neighborhood, int32_t shift, uint8_t positive, uint8_t negative, uint8_t* dst, size_t dstStride)
         {

@@ -50,14 +50,8 @@
     <ClCompile Include="..\..\src\Simd\SimdSve1Interleave.cpp">
       <Filter>Sve1\Convert</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Simd\SimdSve1BgrToRgb.cpp">
-      <Filter>Sve1\Convert</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Simd\SimdSve1AbsDifferenceSum.cpp">
       <Filter>Sve1\Statistics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Simd\SimdSve1Background.cpp">
-      <Filter>Sve1\Motion</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Simd\SimdSve1Statistic.cpp">
       <Filter>Sve1\Statistics</Filter>

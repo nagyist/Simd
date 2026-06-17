@@ -113,6 +113,11 @@ namespace Test
             result = result && Base64DecodeAutoTest(FUNC_D(Simd::Avx512bw::Base64Decode), FUNC_D(SimdBase64Decode));
 #endif 
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && Base64DecodeAutoTest(FUNC_D(Simd::Sve2::Base64Decode), FUNC_D(SimdBase64Decode));
+#endif 
+
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))
             result = result && Base64DecodeAutoTest(FUNC_D(Simd::Neon::Base64Decode), FUNC_D(SimdBase64Decode));
@@ -199,6 +204,11 @@ namespace Test
 #ifdef SIMD_AVX512BW_ENABLE
         if (Simd::Avx512bw::Enable && TestAvx512bw(options))
             result = result && Base64EncodeAutoTest(FUNC_E(Simd::Avx512bw::Base64Encode), FUNC_E(SimdBase64Encode));
+#endif 
+
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && Base64EncodeAutoTest(FUNC_E(Simd::Sve2::Base64Encode), FUNC_E(SimdBase64Encode));
 #endif 
 
 #ifdef SIMD_NEON_ENABLE

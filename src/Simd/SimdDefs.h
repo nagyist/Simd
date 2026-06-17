@@ -250,6 +250,7 @@
 
 #if !defined(SIMD_SVE2_DISABLE) && defined(__ARM_FEATURE_SVE2)
 #define SIMD_SVE2_ENABLE
+#define SIMD_SVE2_VECTOR_SIZE_MAX 64
 #endif
 
 #endif//defined(SIMD_ARM_ENABLE) || defined(SIMD_ARM64_ENABLE)
@@ -293,12 +294,8 @@
 #include <arm_neon.h>
 #endif
 
-#if defined(SIMD_SVE_ENABLE)
+#if defined(SIMD_SVE_ENABLE) || defined(SIMD_SVE2_ENABLE)
 #include <arm_sve.h>
-#endif
-
-#if defined(SIMD_SVE2_ENABLE)
-//#include <arm_sve2.h>
 #endif
 
 #if defined(SIMD_HVX_ENABLE)
@@ -308,6 +305,8 @@
 
 #if defined(SIMD_HVX_ENABLE)
 #define SIMD_ALIGN 128
+#elif defined(SIMD_SVE2_ENABLE)
+#define SIMD_ALIGN SIMD_SVE2_VECTOR_SIZE_MAX
 #elif defined(SIMD_AVX512BW_ENABLE) || defined(SIMD_AVX512VNNI_ENABLE) || defined(SIMD_AMXBF16_ENABLE)
 #define SIMD_ALIGN 64
 #elif defined(SIMD_AVX2_ENABLE)

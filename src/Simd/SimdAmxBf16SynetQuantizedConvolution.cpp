@@ -1,7 +1,7 @@
 /*
 * Simd Library (http://ermig1979.github.io/Simd).
 *
-* Copyright (c) 2011-2025 Yermalayeu Ihar.
+* Copyright (c) 2011-2026 Yermalayeu Ihar.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,8 @@ namespace Simd
                 return NULL;
             else if (SynetQuantizedConvolutionNhwcSpecV0::Preferable(param))
                 return new SynetQuantizedConvolutionNhwcSpecV0(param);
+            else if (SynetQuantizedConvolutionNhwcGemmV1::Preferable(param))
+                return new SynetQuantizedConvolutionNhwcGemmV1(param);
             else if(SynetQuantizedConvolutionNhwcGemmV0::Preferable(param))
                 return new SynetQuantizedConvolutionNhwcGemmV0(param);
             else
