@@ -207,7 +207,7 @@ namespace Simd
                 JpegGrowBufferUnsafe(j);
             int sgn = (int32_t)j->code_buffer >> 31;
             unsigned int k = JpegLrot(j->code_buffer, n);
-            if (n < 0 || n >= (int)(sizeof(JpegBmask) / sizeof(*JpegBmask))) 
+            if (n < 0 || n >= (int)(sizeof(_jbias) / sizeof(*_jbias))) 
                 return 0;
             j->code_buffer = k & ~JpegBmask[n];
             k &= JpegBmask[n];

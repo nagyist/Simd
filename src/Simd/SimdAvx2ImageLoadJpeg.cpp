@@ -474,7 +474,7 @@ namespace Simd
 
             sgn = (jpeg__int32)j->code_buffer >> 31; // sign bit is always in MSB
             k = jpeg_lrot(j->code_buffer, n);
-            if (n < 0 || n >= (int)(sizeof(jpeg__bmask) / sizeof(*jpeg__bmask))) return 0;
+            if (n < 0 || n >= (int)(sizeof(jpeg__jbias) / sizeof(*jpeg__jbias))) return 0;
             j->code_buffer = k & ~jpeg__bmask[n];
             k &= jpeg__bmask[n];
             j->code_bits -= n;

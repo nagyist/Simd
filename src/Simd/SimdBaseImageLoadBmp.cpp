@@ -84,7 +84,7 @@ namespace Simd
             if (headerSize == 12)
             {
                 uint16_t w, h;
-                if (!_stream.Read16u(w) || !_stream.Read16u(h) || w * h == 0)
+                if (!_stream.Read16u(w) || !_stream.Read16u(h) || uint32_t(w) * uint32_t(h) == 0)
                     return false;
                 _width = w;
                 _height = h;
@@ -166,23 +166,26 @@ namespace Simd
                 }
 
             }
-            if (_bpp < 8)
-                return false;  
-            if (_bpp == 8)
-            {
-                _size = _width;
-                _pad = (int32_t)AlignHi(_size, 4) - _size;
-            }
-            else if (_bpp == 24)
-            {
-                _size = _width * 3;
-                _pad = (int32_t)AlignHi(_size, 4) - _size;
-            }
-            else
-            {
-                _size = _width * 4;
-                _pad = 0;
-            }
+            // Only 8, 24 and 32-bit BMPs are actually decoded. The bit-field masks parsed
+            // above for a 16-bit image are never applied and SetConverters has no converter
+            // for it, so for any depth other than 8 or 24 channels defaults to 4 and a row
+            // falls through to a raw memcpy of _width * 4 bytes into a destination sized for
+            // the requested output format, writing past the image allocation.
+            if (_bpp != 8 && _bpp != 24 && _bpp != 32)
+                return false;
+            // Reject malformed dimensions before any size arithmetic. _width and _height are
+            // attacker-controlled 32-bit values read from the file header; computing _size and the
+            // image allocation (height * stride) from unbounded dimensions overflows size_t on 32-bit
+            // builds, yielding a short buffer that the per-row copy loop in FromStream then overruns.
+            // Mirror the limits already enforced by the PNG loader (see ImagePngLoader::ReadHeader).
+            const uint32_t MAX_SIZE = 1 << 24;
+            if (_width > MAX_SIZE || _height > MAX_SIZE)
+                return false;
+            const uint32_t channels = (_bpp == 8 ? 1 : (_bpp == 24 ? 3 : 4));
+            if ((uint32_t(1) << 30) / _width / channels < _height)
+                return false;
+            _size = _width * channels;
+            _pad = (_bpp == 8 || _bpp == 24) ? (uint32_t)(AlignHi(_size, 4) - _size) : 0;
             if (_param.format == SimdPixelFormatNone)
             {
                 if (_bpp == 32)

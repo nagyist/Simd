@@ -53,6 +53,16 @@ namespace Simd
             uint8_t byte;
             if (!(_stream.Read(byte) && byte == '\n'))
                 return false;
+            // width and height come straight from the textual header with no upper bound, unlike the
+            // PNG and BMP loaders. _size = width * channels below is evaluated in uint32 and wraps for
+            // large width, and on 32-bit builds the height * stride allocation in Recreate overflows
+            // size_t, leaving a short buffer that the per-row copy in FromStream then overruns. Cap the
+            // dimensions the way ImagePngLoader::ReadHeader already does.
+            const uint32_t MAX_SIZE = 1 << 24;
+            if (width > MAX_SIZE || height > MAX_SIZE)
+                return false;
+            if ((uint32_t(1) << 30) / width / 4 < height)
+                return false;
             _image.Recreate(width, height, (Image::Format)_param.format);
             _block = height;
             if (_param.file == SimdImageFilePgmTxt || _param.file == SimdImageFilePgmBin)
