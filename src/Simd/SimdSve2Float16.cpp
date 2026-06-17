@@ -35,13 +35,13 @@ namespace Simd
         {
             svfloat16_t _a = svreinterpret_f16_u16(svld1_u16(load, a));
             svfloat16_t _b = svreinterpret_f16_u16(svld1_u16(load, b));
-            svfloat32_t a0 = svcvt_f32_f16_x(lo, _a);
-            svfloat32_t b0 = svcvt_f32_f16_x(lo, _b);
+            svfloat32_t a0 = svcvt_f32_f16_z(lo, _a);
+            svfloat32_t b0 = svcvt_f32_f16_z(lo, _b);
             aa0 = svmla_f32_x(lo, aa0, a0, a0);
             ab0 = svmla_f32_x(lo, ab0, a0, b0);
             bb0 = svmla_f32_x(lo, bb0, b0, b0);
-            svfloat32_t a1 = svcvtlt_f32_f16_x(hi, _a);
-            svfloat32_t b1 = svcvtlt_f32_f16_x(hi, _b);
+            svfloat32_t a1 = svcvtlt_f32_f16_z(hi, _a);
+            svfloat32_t b1 = svcvtlt_f32_f16_z(hi, _b);
             aa1 = svmla_f32_x(hi, aa1, a1, a1);
             ab1 = svmla_f32_x(hi, ab1, a1, b1);
             bb1 = svmla_f32_x(hi, bb1, b1, b1);
