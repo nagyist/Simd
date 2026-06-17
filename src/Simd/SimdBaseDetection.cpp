@@ -305,6 +305,8 @@ namespace Simd
                     {
                         Data::LbpFeature feature;
                         std::vector<int> values = Xml::GetValues<int>(featureNode, Names::rect);
+                        if (values.size() < 4)
+                            SIMD_EX("Invalid LBP feature: malformed rect!");
                         feature.rect.x = values[0];
                         feature.rect.y = values[1];
                         feature.rect.width = values[2];
