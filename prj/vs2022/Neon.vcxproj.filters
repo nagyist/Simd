@@ -362,7 +362,7 @@
       <Filter>Neon\System</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Simd\SimdNeonBFloat16.cpp">
-      <Filter>Neon\Convert</Filter>
+      <Filter>Neon\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

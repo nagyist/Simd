@@ -31,6 +31,9 @@
     <Filter Include="Sve2\Filter">
       <UniqueIdentifier>{f2222fb7-bc55-4b81-98be-b2e725a3418b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sve2\Descriptors">
+      <UniqueIdentifier>{337a78ee-4aa8-4208-8ce2-6333e5dd214a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\Simd\SimdSve2.h">
@@ -164,9 +167,6 @@
     <ClCompile Include="..\..\src\Simd\SimdSve2Binarization.cpp">
       <Filter>Sve2\Filter</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Simd\SimdSve2BFloat16.cpp">
-      <Filter>Sve2\Convert</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Simd\SimdSve2BgraToBgr.cpp">
       <Filter>Sve2\Convert</Filter>
     </ClCompile>
@@ -208,6 +208,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Simd\SimdSve2AlphaBlending.cpp">
       <Filter>Sve2\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Simd\SimdSve2BFloat16.cpp">
+      <Filter>Sve2\Math</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

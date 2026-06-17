@@ -107,9 +107,7 @@ namespace Simd
 
         void BFloat16ToFloat32(const uint16_t* src, size_t size, float* dst);
 
-#ifdef SIMD_NEON_FP16_ENABLE
         void CosineDistance16f(const uint16_t* a, const uint16_t* b, size_t size, float* distance);
-#endif
 
         void CosineDistance32f(const float* a, const float* b, size_t size, float* distance);
       
