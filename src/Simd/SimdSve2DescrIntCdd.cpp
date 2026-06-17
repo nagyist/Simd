@@ -133,13 +133,13 @@ namespace Simd
             switch (depth)
             {
             case 4: return CosineDistance<4>;
-            case 5: return CosineDistance<5>;
-            case 6: return CosineDistance<6>;
-            case 7: return CosineDistance<7>;
+            //case 5: return CosineDistance<5>;
+            //case 6: return CosineDistance<6>;
+            //case 7: return CosineDistance<7>;
             case 8: return CosineDistance<8>;
-            default: assert(0); return NULL;
+            default: return Neon::GetCosineDistance(depth);
             }
         }
     }
-#endif// SIMD_SVE2_ENABLE
+#endif
 }
