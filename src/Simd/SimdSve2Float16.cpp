@@ -37,14 +37,14 @@ namespace Simd
             svfloat16_t _b = svreinterpret_f16_u16(svld1_u16(load, b));
             svfloat32_t a0 = svcvt_f32_f16_x(lo, _a);
             svfloat32_t b0 = svcvt_f32_f16_x(lo, _b);
-            aa0 = svmla_f32_z(lo, aa0, a0, a0);
-            ab0 = svmla_f32_z(lo, ab0, a0, b0);
-            bb0 = svmla_f32_z(lo, bb0, b0, b0);
+            aa0 = svmla_f32_x(lo, aa0, a0, a0);
+            ab0 = svmla_f32_x(lo, ab0, a0, b0);
+            bb0 = svmla_f32_x(lo, bb0, b0, b0);
             svfloat32_t a1 = svcvtlt_f32_f16_x(hi, _a);
             svfloat32_t b1 = svcvtlt_f32_f16_x(hi, _b);
-            aa1 = svmla_f32_z(hi, aa1, a1, a1);
-            ab1 = svmla_f32_z(hi, ab1, a1, b1);
-            bb1 = svmla_f32_z(hi, bb1, b1, b1);
+            aa1 = svmla_f32_x(hi, aa1, a1, a1);
+            ab1 = svmla_f32_x(hi, ab1, a1, b1);
+            bb1 = svmla_f32_x(hi, bb1, b1, b1);
         }
 
         void CosineDistance16f(const uint16_t* a, const uint16_t* b, size_t size, float* distance)
@@ -59,9 +59,8 @@ namespace Simd
                 CosineDistance16f(a + i, b + i, body16, body32, body32, aa0, aa1, ab0, ab1, bb0, bb1);
             if (i < size)
             {
-                size_t tail = size - i;
-                CosineDistance16f(a + i, b + i, svwhilelt_b16(size_t(0), tail),
-                    svwhilelt_b32(size_t(0), (tail + 1) / 2), svwhilelt_b32(size_t(0), tail / 2), aa0, aa1, ab0, ab1, bb0, bb1);
+                const svbool_t tail16 = svwhilelt_b16(i, size);
+                CosineDistance16f(a + i, b + i, tail16, body32, body32, aa0, aa1, ab0, ab1, bb0, bb1);
             }
             float _aa = svaddv_f32(body32, svadd_f32_x(body32, aa0, aa1));
             float _ab = svaddv_f32(body32, svadd_f32_x(body32, ab0, ab1));
