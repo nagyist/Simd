@@ -441,7 +441,6 @@ namespace Simd
             int dD = int(p.dstC * a.elem), dS = (int)a.bufK, dW = 16, strideW = 64;
             int stepS = a.reorderType ? 1024 : 64, strideS = a.reorderType ? 64 : dS;
             int dB = term == Term8iInterim ? (int)a.dB : DF, strideB = dB * 4;
-            const uint8_t* src1 = src0 + 16 * dS;
             const int8_t* weight1 = weight0 + a.bufK * F;
 
             if (update)
@@ -644,7 +643,7 @@ namespace Simd
             int32_t* buf1 = buf0 + 16 * DF, * sum1 = sum0 + 16 * a.dB;
 
             if (cfg)
-                SetTileConf2x2(dstS, dstC);
+                SetTileConf2x1(dstS, dstC);
             if (update)
             {
                 _tile_stream_loadd(0, sum0 + 0, strideS);
@@ -700,9 +699,8 @@ namespace Simd
             int dS = (int)a.bufK, dD = int(p.dstC * a.elem), strideW = 64, strideB = (int)a.dB * 4;
             int stepS = a.reorderType ? 1024 : 64, strideS = a.reorderType ? 64 : dS;
             const int8_t* weight1 = weight0 + a.bufK * F;
-
             if (cfg)
-                SetTileConf2x2(dstS, dstC);
+                SetTileConf1x2(dstS, dstC);
             if (update)
             {
                 _tile_stream_loadd(0, sum0 + 0, strideB);
@@ -718,13 +716,14 @@ namespace Simd
             _tile_loadd(6, weight0, strideW);
             for (; sc < srcC64; src0 += stepS)
             {
-                _tile_loadd(7, weight1 + sc * 16, strideW);
                 _tile_stream_loadd(4, src0, strideS);
+                _tile_loadd(7, weight1 + sc * 16, strideW);
                 _tile_dpbusd(0, 4, 6);
                 sc += 64;
                 _tile_loadd(6, weight0 + sc * 16, strideW);
                 _tile_dpbusd(1, 4, 7);
             }
+            _tile_stream_loadd(4, src0, strideS);
             _tile_loadd(7, weight1 + sc * 16, strideW);
             _tile_dpbusd(0, 4, 6);
             _tile_dpbusd(1, 4, 7);
@@ -758,7 +757,7 @@ namespace Simd
             int stepS = a.reorderType ? 1024 : 64, strideS = a.reorderType ? 64 : dS;
 
             if (cfg)
-                SetTileConf2x2(dstS, dstC);
+                SetTileConf1x1(dstS, dstC);
             if (update)
             {
                 _tile_stream_loadd(0, sum0 + 0, strideB);
