@@ -283,7 +283,9 @@ namespace Simd
         protected:
             void SetAlgParam();
             virtual void SetWeight(const int8_t* weight);
-            void Forward(const uint8_t* src, uint8_t* buf, int32_t* sum, uint8_t* dst);
+            void ForwardSingle(const uint8_t* src, uint8_t* buf, int32_t* sum, uint8_t* dst);
+            void ForwardBatch(const uint8_t* src, uint8_t* buf, int32_t* sum, uint8_t* dst);
+
 
             AlgParam _alg;
             Array32i _srcOffs, _dstMask, _nK, _maBufOffs, _maSumOffs, _miDstOffs;

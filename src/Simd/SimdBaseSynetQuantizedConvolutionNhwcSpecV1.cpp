@@ -95,36 +95,75 @@ namespace Simd
             if (bufSize * 2 <= L2 && p.batch > 1)
             {
                 for (size_t batch = 1; batch <= p.batch; ++batch)
-                    if (p.batch % batch == 0 && batch * bufSize <= L2)
+                    if (p.batch % batch == 0 && batch * bufSize <= L2)// && batch * a.srcH * a.srcW <= 32 * microS
                         a.batch = batch;
             }
+            a.macroH = Simd::RestrictRange(L2 / a.macroC / a.srcW, size_t(1), p.dstH * a.batch);
+            a.macroD = Simd::RestrictRange(AlignLoAny(L3 / a.macroC / a.kA, a.microD), a.microD, AlignHiAny(p.dstC, a.microD));
+            a.macroD = Simd::Min<size_t>(a.macroD, a.microD * 4);
 
-            //a.batch = 1;
-            //size_t bufSize = a.srcC * a.srcH * a.srcW;
-            //if (bufSize * 2 <= L2 && p.batch > 1)
-            //{
-            //    for (size_t batch = 1; batch <= p.batch; ++batch)
-            //        if (p.batch % batch == 0 && batch * bufSize <= L2 && (microC == 4 || batch * a.srcH * a.srcW <= 32 * microS))
-            //            a.batch = batch;
-            //}
-            //a.macroH = Simd::RestrictRange(L2 / a.macroC / a.srcW, size_t(1), p.dstH * a.batch);
-            //a.macroD = Simd::RestrictRange(AlignLoAny(L3 / a.macroC / a.kA, a.microD), a.microD, AlignHiAny(p.dstC, a.microD));
+            a.bufD = AlignHi(a.batch * a.srcH * a.srcW, a.microS) * a.macroD;
 
-            //a.numH = DivHi(p.dstH * a.batch, a.macroH);
-            //a.bufD = (a.batch * a.srcH * a.srcW + a.numH * a.F) * a.macroD;
+            a.elem = _elemD;
+            a.bufS = (a.batch * a.srcH * a.srcW + a.padE + a.microS) * a.srcC;
 
-            //a.macroO = DivHi(a.macroC, a.microC) * a.kA;
+            int dX = (int)a.microC, dY = (int)a.srcW * dX, dC = int(a.batch * a.srcH * a.srcW + a.padE) * dX;
+            _srcOffs.Resize(DivHi(a.K, a.microC));
+            for (size_t c = 0, offsS = 0, i = 0; c < a.srcC; c += dX, offsS += dC)
+                for (size_t y = 0, offsY = offsS; y < p.kernelY; y += 1, offsY += dY)
+                    for (size_t offsX = offsY, endX = offsY + p.kernelX * dX; offsX < endX; offsX += dX, i++)
+                        _srcOffs[i] = (int)offsX;
 
-            //a.elem = _elemD;
-            //a.bufS = (a.batch * a.srcH * a.srcW + a.padE) * a.srcC + a.microC * a.F;
-            //_merge = a.batch;
+            _dstMask.Resize(AlignHi((a.srcH * a.batch - a.gapV) * a.srcW - a.padH, a.microS));
+            size_t i = 0;
+            for (size_t b = 0; b < a.batch; b++)
+            {
+                for (size_t y = 0; y < p.dstH; y++)
+                {
+                    for (size_t x = 0; x < p.dstW; x++, i++)
+                        _dstMask[i] = -1;
+                    for (size_t x = 0; x < a.gapH; x++, i++)
+                        _dstMask[i] = 0;
+                }
+                for (size_t y = 0, gapI = a.gapV * a.srcW; y < gapI && i < _dstMask.size; y++, i++)
+                    _dstMask[i] = 0;
+            }
+            for (; i < _dstMask.size; i++)
+                _dstMask[i] = 0;
 
-            //int dX = (int)a.microC, dY = (int)a.srcW * dX, dC = int(a.batch * a.srcH * a.srcW + a.padE) * dX;
-            //_offset.Resize(DivHi(a.K, a.microC));
-            //for (size_t c = 0, offsS = 0, i = 0; c < a.srcC; c += dX, offsS += dC)
-            //    for (size_t y = 0, offsY = offsS; y < p.kernelY; y += 1, offsY += dY)
-            //        for (size_t offsX = offsY, endX = offsY + p.kernelX * dX; offsX < endX; offsX += dX, i++)
-            //            _offset[i] = (int)offsX;
+            _nK.Resize(DivHi(a.srcC, a.macroC));
+            for (size_t o = 0, c = 0; o < _nK.size; o++, c += a.macroC)
+            {
+                size_t macroC = Simd::Min(a.srcC, c + a.macroC) - c;
+                _nK[o] = int(DivHi(macroC, a.microC) * a.kA);
+            }
+            if (_nK.size > 1 && _nK[_nK.size - 1] < _nK[_nK.size - 2])
+                Simd::Swap(_nK[_nK.size - 1], _nK[_nK.size - 2]);
+
+            size_t n = DivHi(a.batch * p.dstH, a.macroH);
+            _maBufOffs.Resize(n);
+            _maSumOffs.Resize(n + 1);
+            _miDstOffs.Resize(DivHi(_dstMask.size, a.microS));
+            for (size_t i = 0; i <= n; ++i)
+            {
+                if (i == n)
+                    _maSumOffs[i] = int((a.srcH * a.batch - a.gapV) * a.srcW - a.padH);
+                else
+                {
+                    size_t dy = i * a.macroH;
+                    size_t sumOffs = Simd::Max<ptrdiff_t>(dy * a.srcW - a.gapH, 0);
+                    _maSumOffs[i] = int(AlignLo(sumOffs, a.microS));
+                    _maBufOffs[i] = _maSumOffs[i];
+                }
+            }
+            _miDstOffs[0] = 0;
+            for (size_t i = 1; i < _miDstOffs.size; ++i)
+            {
+                _miDstOffs[i] = _miDstOffs[i - 1];
+                for (size_t j = (i - 1) * a.microS, m = i * a.microS; j < m; ++j)
+                    if (_dstMask[j])
+                        _miDstOffs[i]++;
+            }
         }
 
         void SynetQuantizedConvolutionNhwcSpecV1::SetWeight(const int8_t* weight)
@@ -170,13 +209,21 @@ namespace Simd
             {
                 uint8_t* buf = bufS ? bufS : (uint8_t*)src;
                 int32_t* sum = bufD ? bufD : (int32_t*)dst;
-                Forward(src, buf, sum, dst);
+                if (a.batch == 1)
+                    ForwardSingle(src, buf, sum, dst);
+                else
+                    ForwardBatch(src, buf, sum, dst);
                 src += _sizeS * a.batch * _elemS;
                 dst += _sizeD * a.batch * _elemD;
             }
         }
 
-        void SynetQuantizedConvolutionNhwcSpecV1::Forward(const uint8_t* src, uint8_t* buf, int32_t* sum, uint8_t* dst)
+        void SynetQuantizedConvolutionNhwcSpecV1::ForwardSingle(const uint8_t* src, uint8_t* buf, int32_t* sum, uint8_t* dst)
+        {
+
+        }
+
+        void SynetQuantizedConvolutionNhwcSpecV1::ForwardBatch(const uint8_t* src, uint8_t* buf, int32_t* sum, uint8_t* dst)
         {
 
         }
