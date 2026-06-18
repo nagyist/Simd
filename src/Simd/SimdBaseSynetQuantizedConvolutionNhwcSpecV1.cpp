@@ -124,7 +124,7 @@ namespace Simd
             //for (size_t c = 0, offsS = 0, i = 0; c < a.srcC; c += dX, offsS += dC)
             //    for (size_t y = 0, offsY = offsS; y < p.kernelY; y += 1, offsY += dY)
             //        for (size_t offsX = offsY, endX = offsY + p.kernelX * dX; offsX < endX; offsX += dX, i++)
-                        _offset[i] = (int)offsX;
+            //            _offset[i] = (int)offsX;
         }
 
         void SynetQuantizedConvolutionNhwcSpecV1::SetWeight(const int8_t* weight)
