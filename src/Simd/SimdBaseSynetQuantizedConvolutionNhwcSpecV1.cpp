@@ -220,7 +220,47 @@ namespace Simd
 
         void SynetQuantizedConvolutionNhwcSpecV1::ForwardSingle(const uint8_t* src, uint8_t* buf, int32_t* sum, uint8_t* dst)
         {
-
+            const ConvParam& p = _param;
+            const AlgParam& a = _alg;
+            const int32_t* sBias = _bias.data;
+            const float* sNorm = _norm.data;
+            const float* params = _params.data;
+            float dNorm = 1.0f / _dstScale;
+            size_t dS = a.microC, dB = a.macroD, dD = p.dstC * _elemD;
+            size_t bufOffs = ((a.padV - p.padY) * a.srcW + (a.padH - p.padX)) * dS;
+            for (size_t mad = 0; mad < p.dstC; mad += a.macroD)
+            {
+                size_t macroD = Simd::Min(p.dstC, mad + a.macroD) - mad;
+                const int8_t* weight = _weight.data + mad * a.K;
+                const int* srcOffs = _srcOffs.data;
+                for (size_t nk = 0; nk < _nK.size; ++nk)
+                {
+                    int update = nk == 0 ? 0 : 1;
+                    size_t nK = _nK[nk];
+                    for (size_t dyBeg = 0, dyN = 0; dyBeg < p.dstH; dyN++)
+                    {
+                        size_t dyEnd = Simd::Min(dyBeg + a.macroH, p.dstH);
+                        size_t dstS = _maSumOffs[dyN + 1] - _maSumOffs[dyN];
+                        size_t miIdx = _maSumOffs[dyN] / a.microS;
+                        if (mad == 0 && nk == 0)
+                            _preprocess(src, _srcZero[0], p, a, dyBeg, dyEnd, dyEnd == p.dstH ? 1 : 0, buf);
+                        if (nk == _nK.size - 1)
+                            _lastConv(buf + bufOffs + _maBufOffs[dyN] * dS, p, a, srcOffs, macroD, dstS, nK, update, weight,
+                                sum + _maSumOffs[dyN] * dB, sBias, sNorm, _intZero, _intScale, params, dNorm, _dstZero, 
+                                _dstMask.data + _maSumOffs[dyN], _miDstOffs.data + miIdx, dst + _miDstOffs[miIdx] * dD);
+                        else
+                            _bodyConv(buf + bufOffs + _maBufOffs[dyN] * dS, p, a, srcOffs, macroD, dstS, nK, update, weight, sum + _maSumOffs[dyN] * dB);
+                        dyBeg = dyEnd;
+                    }
+                    srcOffs += nK;
+                    weight += nK * a.microC * a.F;
+                }
+                sBias += macroD;
+                sNorm += macroD;
+                if (p.activation == ::SimdConvolutionActivationPrelu)
+                    params += macroD;
+                dst += macroD * _elemD;
+            }
         }
 
         void SynetQuantizedConvolutionNhwcSpecV1::ForwardBatch(const uint8_t* src, uint8_t* buf, int32_t* sum, uint8_t* dst)
