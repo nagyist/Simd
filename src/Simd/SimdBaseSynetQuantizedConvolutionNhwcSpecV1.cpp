@@ -158,6 +158,11 @@ namespace Simd
                 }
             }
         }
+
+        void SynetQuantizedConvolutionNhwcSpecV1::Forward(const uint8_t* src, uint8_t* buf, int32_t* sum, uint8_t* dst)
+        {
+
+        }
     }
 #endif
 }
