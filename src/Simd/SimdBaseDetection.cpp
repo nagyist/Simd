@@ -234,8 +234,8 @@ namespace Simd
 
                         Data::DTree tree;
                         tree.nodeCount = (int)internalNodes.size() / nodeStep;
-                        if (tree.nodeCount > 1)
-                            data->isStumpBased = false;
+                        if (tree.nodeCount != 1 || leafValues.size() != 2)
+                            SIMD_EX("Invalid cascade: a weak classifier must be a stump with one node and two leaf values!");
                         data->classifiers.push_back(tree);
 
                         data->nodes.reserve(data->nodes.size() + tree.nodeCount);
