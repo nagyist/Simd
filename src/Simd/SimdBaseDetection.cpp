@@ -316,6 +316,15 @@ namespace Simd
                         data->lbpFeatures.push_back(feature);
                     }
                 }
+
+                size_t featureCount = data->featureType == SimdDetectionInfoFeatureHaar
+                    ? data->haarFeatures.size() : data->lbpFeatures.size();
+                for (size_t i = 0; i < data->nodes.size(); ++i)
+                {
+                    int featureIdx = data->nodes[i].featureIdx;
+                    if (featureIdx < 0 || (size_t)featureIdx >= featureCount)
+                        SIMD_EX("Invalid cascade node: feature index out of range!");
+                }
             }
             catch (...)
             {
