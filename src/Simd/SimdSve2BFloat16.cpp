@@ -61,26 +61,25 @@ namespace Simd
 
         //-------------------------------------------------------------------------------------------------
 
-        SIMD_INLINE void BFloat16ToFloat32(const uint16_t* src, const svbool_t& load, const svbool_t& lo, const svbool_t& hi, float* dst)
+        SIMD_INLINE void BFloat16ToFloat32(const uint16_t* src, const svbool_t& load, const svuint16_t &zero, const svbool_t& lo, const svbool_t& hi, float* dst)
         {
-            size_t A = svlen(svuint16_t());
-            svuint16_t zero = svdup_n_u16(0);
             svuint16_t _src = svld1_u16(load, src);
-            svst1_u16(lo, (uint16_t*)dst + 0 * A, svzip1_u16(zero, _src));
-            svst1_u16(hi, (uint16_t*)dst + 1 * A, svzip2_u16(zero, _src));
+            svst1_vnum_u16(lo, (uint16_t*)dst, 0, svzip1_u16(zero, _src));
+            svst1_vnum_u16(hi, (uint16_t*)dst, 1, svzip2_u16(zero, _src));
         }
 
         void BFloat16ToFloat32(const uint16_t* src, size_t size, float* dst)
         {
             size_t A = svlen(svuint16_t()), sizeA = AlignLo(size, A);
             const svbool_t body = svptrue_b16();
+            svuint16_t zero = svdup_n_u16(0);
             size_t i = 0;
             for (; i < sizeA; i += A)
-                BFloat16ToFloat32(src + i, body, body, body, dst + i);
+                BFloat16ToFloat32(src + i, body, zero, body, body, dst + i);
             if (i < size)
             {
                 size_t tail = size - i, half = 2 * tail;
-                BFloat16ToFloat32(src + i, svwhilelt_b16(size_t(0), tail),
+                BFloat16ToFloat32(src + i, svwhilelt_b16(size_t(0), tail), zero, 
                     svwhilelt_b16(size_t(0), Simd::Min(half, A)), svwhilelt_b16(A, half), dst + i);
             }
         }
