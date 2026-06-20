@@ -61,7 +61,7 @@ namespace Simd
             {
                 while (first != last)
                 {
-                    if (!isspace(*first))
+                    if (!isspace(static_cast<unsigned char>(*first)))
                         return first;
                     ++first;
                 }
