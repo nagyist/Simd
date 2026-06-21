@@ -150,6 +150,16 @@ namespace Simd
             const char * rect = "rect";
         }
 
+        // Feature rectangles read from the cascade XML are turned into raw integral-image
+        // pointers by UpdateFeaturePtrs, which only addresses the window [0, origWinSize]
+        // and clamps nothing at run time (SumElemPtr merely asserts). A corner outside the
+        // window therefore produces an out-of-bounds pointer that is dereferenced for every
+        // detection position. Reject such rects at the load boundary.
+        SIMD_INLINE bool DetectionWinCorner(int col, int row, const Size & win)
+        {
+            return col >= 0 && row >= 0 && col <= win.x && row <= win.y;
+        }
+
         void * DetectionLoadStringXml(char * xml, const char * path)
         {
             static const float THRESHOLD_EPS = 1e-5f;
@@ -293,6 +303,23 @@ namespace Simd
                         feature.tilted = featureNode->FirstNode(Names::tilted) && Xml::GetValue<int>(featureNode, Names::tilted) != 0;
                         if (feature.tilted)
                             data->hasTilted = true;
+                        for (int j = 0; j < rectIndex; ++j)
+                        {
+                            if (feature.rect[j].weight == 0.0f)
+                                continue;
+                            const Data::Rect & r = feature.rect[j].r;
+                            bool ok = feature.tilted
+                                ? DetectionWinCorner(r.x, r.y, data->origWinSize)
+                                    && DetectionWinCorner(r.x - r.height, r.y + r.height, data->origWinSize)
+                                    && DetectionWinCorner(r.x + r.width, r.y + r.width, data->origWinSize)
+                                    && DetectionWinCorner(r.x + r.width - r.height, r.y + r.width + r.height, data->origWinSize)
+                                : DetectionWinCorner(r.x, r.y, data->origWinSize)
+                                    && DetectionWinCorner(r.x + r.width, r.y, data->origWinSize)
+                                    && DetectionWinCorner(r.x, r.y + r.height, data->origWinSize)
+                                    && DetectionWinCorner(r.x + r.width, r.y + r.height, data->origWinSize);
+                            if (!ok)
+                                SIMD_EX("Invalid HAAR feature: rect outside detection window!");
+                        }
                         data->haarFeatures.push_back(feature);
                     }
                 }
@@ -311,6 +338,10 @@ namespace Simd
                         feature.rect.y = values[1];
                         feature.rect.width = values[2];
                         feature.rect.height = values[3];
+                        if (feature.rect.width <= 0 || feature.rect.height <= 0 ||
+                            !DetectionWinCorner(feature.rect.x, feature.rect.y, data->origWinSize) ||
+                            !DetectionWinCorner(feature.rect.x + feature.rect.width * 3, feature.rect.y + feature.rect.height * 3, data->origWinSize))
+                            SIMD_EX("Invalid LBP feature: rect outside detection window!");
                         if (feature.rect.width*feature.rect.height > 256)
                             data->canInt16 = false;
                         data->lbpFeatures.push_back(feature);
