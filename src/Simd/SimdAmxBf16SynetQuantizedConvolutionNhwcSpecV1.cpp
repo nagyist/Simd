@@ -24,6 +24,7 @@
 #include "Simd/SimdSynetQuantizedConvolution.h"
 #include "Simd/SimdSynetQuantizeLinear.h"
 #include "Simd/SimdSynetConvolution8iCommon.h"
+#include "Simd/SimdSynetQuantizedActivation.h"
 #include "Simd/SimdSynet.h"
 #include "Simd/SimdMath.h"
 #include "Simd/SimdBase.h"
@@ -339,17 +340,310 @@ namespace Simd
             }
         }
 
+        //-------------------------------------------------------------------------------------------------
+
+        template<Term8iType term, SimdConvolutionActivationType type, int M, int flush> static SIMD_INLINE void ApplyMx1(
+            uint8_t*& ptr, int dP, int32_t* buf, const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, const __m512i& iHi,
+            const __m512& iScale, const __m512* params, const __m512& dNorm, const __m512i& dZero, const int* mask, __mmask32 tail = -1)
+        {
+            uint32_t msk = mask[0];
+            tail = tail & msk;
+            if (M == 1)
+            {
+                __m512i d0 = Avx512bw::ToSave32i<type, 0>(_mm512_loadu_si512(buf + 0), sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero);
+                if (term == Term8iLast8u)
+                {
+                    _mm_mask_storeu_epi8(ptr, tail, _mm512_castsi512_si128(PackI16ToU8(PackI32ToI16(d0, K_ZERO), K_ZERO)));
+                    if (flush) _mm_prefetch((const char*)ptr, _MM_HINT_NTA);
+                }
+                else if (term == Term8iLast32f)
+                {
+                    assert(0);
+                }
+            }
+            else if (M == 2)
+            {
+                __m512i d0 = Avx512bw::ToSave32i<type, 0>(_mm512_loadu_si512(buf + 0), sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero);
+                __m512i d1 = Avx512bw::ToSave32i<type, 1>(_mm512_loadu_si512(buf + F), sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero);
+                if (term == Term8iLast8u)
+                {
+                    _mm256_mask_storeu_epi8(ptr, tail, _mm512_castsi512_si256(PackI16ToU8(PackI32ToI16(d0, d1), K_ZERO)));
+                    if (flush) _mm_prefetch((const char*)ptr, _MM_HINT_NTA);
+                }
+                else if (term == Term8iLast32f)
+                {
+                    assert(0);
+                }
+            }
+            ptr += dP & msk;
+        }
+
+        template<Term8iType term, SimdConvolutionActivationType type, int M, int N, int flush> static SIMD_INLINE void ApplyMxN(
+            uint8_t*& ptr, int dP, int32_t* buf, int dB, const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, const __m512i& iHi,
+            const __m512& iScale, const __m512* params, const __m512& dNorm, const __m512i& dZero, const int* mask, __mmask32 tail = __mmask32(-1))
+        {
+            if (N > 0) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 0 * dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + 0, tail);
+            if (N > 1) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 1 * dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + 1, tail);
+            if (N > 2) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 2 * dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + 2, tail);
+            if (N > 3) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 3 * dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + 3, tail);
+            if (N > 4) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 4 * dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + 4, tail);
+            if (N > 5) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 5 * dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + 5, tail);
+            if (N > 6) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 6 * dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + 6, tail);
+            if (N > 7) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 7 * dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + 7, tail);
+        }
+
+        //-----------------------------------------------------------------------------------------
+
+        template<Term8iType term, SimdConvolutionActivationType type, int M, int apply, int flush> void QuantizedConvolutionNhwcSpecV1_1x32x32(
+            const uint8_t* src0, const ConvParam& p, const AlgParam& a, const int* offs, size_t nK, int update, const int8_t* weight0,
+            const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, const __m512i& iHi, const __m512& iScale, const __m512* params, 
+            const __m512& dNorm, const __m512i& dZero, int32_t* buf2, const int* mask, uint8_t*& dst, __mmask32 tail)
+        {
+            int dD = int(p.dstC * a.elem), dB = (int)a.macroD, dS = (int)a.microC, strideS = dS, dW = 1024, strideW = 64, strideB = dB * 4;
+            const int8_t* weight1 = weight0 + a.K * F;
+            const uint8_t* src1 = src0 + 16 * dS;
+            int32_t* buf0 = buf2 - 32 * dB;
+            int32_t* buf3 = buf2 + 16 * dB;
+
+            if (update)
+            {
+                if (M > 0) _tile_stream_loadd(0, buf2 + 0, strideB);
+                if (M > 1) _tile_stream_loadd(1, buf2 + F, strideB);
+                if (M > 0) _tile_stream_loadd(2, buf3 + 0, strideB);
+                if (M > 1) _tile_stream_loadd(3, buf3 + F, strideB);
+            }
+            else
+            {
+                if (M > 0) _tile_zero(0);
+                if (M > 1) _tile_zero(1);
+                if (M > 0) _tile_zero(2);
+                if (M > 1) _tile_zero(3);
+            }
+
+            int n1 = (int)nK - 1, i = 0, o = offs[0], na = apply ? (8 / apply - 1) : 0, ds = 0;
+            _tile_stream_loadd(4, src0 + o, strideS);
+            if (M > 0) _tile_loadd(6, weight0, strideW);
+            for (; i < na; ++i, weight1 += dW)
+            {
+                if (M > 1) _tile_loadd(7, weight1, strideW);
+                if (M > 0) _tile_dpbusd(0, 4, 6);
+                ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + ds, tail), ds += apply;
+                _tile_stream_loadd(5, src1 + o, strideS);
+                if (M > 1) _tile_dpbusd(1, 4, 7);
+                ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + ds, tail), ds += apply;
+                o = offs[i + 1];
+                _tile_stream_loadd(4, src0 + o, strideS);
+                if (M > 0) _tile_dpbusd(2, 5, 6);
+                ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + ds, tail), ds += apply;
+                weight0 += dW;
+                if (M > 0) _tile_loadd(6, weight0, strideW);
+                if (M > 1) _tile_dpbusd(3, 5, 7);
+                ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + ds, tail), ds += apply;
+            }
+            for (; i < n1; ++i, weight1 += dW)
+            {
+                if (M > 1) _tile_loadd(7, weight1, strideW);
+                if (M > 0) _tile_dpbusd(0, 4, 6);
+                _tile_stream_loadd(5, src1 + o, strideS);
+                if (M > 1) _tile_dpbusd(1, 4, 7);
+                o = offs[i + 1];
+                _tile_stream_loadd(4, src0 + o, strideS);
+                if (M > 0) _tile_dpbusd(2, 5, 6);
+                weight0 += dW;
+                if (M > 0) _tile_loadd(6, weight0, strideW);
+                if (M > 1) _tile_dpbusd(3, 5, 7);
+            }
+            if (M > 1) _tile_loadd(7, weight1, strideW);
+            _tile_stream_loadd(5, src1 + offs[n1], strideS);
+
+            if (M > 0) _tile_dpbusd(0, 4, 6);
+            ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + ds, tail), ds += apply;
+            if (M > 0) _tile_stored(0, buf2 + 0, strideB);
+
+            if (M > 1) _tile_dpbusd(1, 4, 7);
+            ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + ds, tail), ds += apply;
+            if (M > 1) _tile_stored(1, buf2 + F, strideB);
+
+            if (M > 0) _tile_dpbusd(2, 5, 6);
+            ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + ds, tail), ds += apply;
+            if (M > 0) _tile_stored(2, buf3 + 0, strideB);
+
+            if (M > 1) _tile_dpbusd(3, 5, 7);
+            ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + ds, tail), ds += apply;
+            if (M > 1) _tile_stored(3, buf3 + F, strideB);
+        }
+
+        template<Term8iType term, SimdConvolutionActivationType type, int M, int apply, int flush> void QuantizedConvolutionNhwcSpecV1_1x16x32(
+            const uint8_t* src0, const ConvParam& p, const AlgParam& a, const int* offs, size_t nK, int update, const int8_t* weight0,
+            const __m512i* sBias, const __m512* sNorm, const __m512i& iLo, const __m512i& iHi, const __m512& iScale, const __m512* params,
+            const __m512& dNorm, const __m512i& dZero, int32_t* buf2, const int* mask, uint8_t*& dst, __mmask32 tail)
+        {
+            int dD = int(p.dstC * a.elem), dB = (int)a.macroD, dS = (int)a.microC, strideS = dS, dW = 1024, strideW = 64, strideB = dB * 4;
+            const int8_t* weight1 = weight0 + a.K * F;
+            const uint8_t* src1 = src0 + 16 * dS;
+            int32_t* buf0 = buf2 - 32 * dB;
+
+            if (update)
+            {
+                if (M > 0) _tile_stream_loadd(0, buf2 + 0, strideB);
+                if (M > 1) _tile_stream_loadd(1, buf2 + F, strideB);
+            }
+            else
+            {
+                if (M > 0) _tile_zero(0);
+                if (M > 1) _tile_zero(1);
+            }
+
+            int n1 = (int)nK - 1, i = 0, o = offs[0], na = apply ? (8 / apply - 1) : 0, ds = 0;
+            _tile_stream_loadd(4, src0 + o, strideS);
+            if (M > 0) _tile_loadd(6, weight0, strideW);
+            for (; i < na; ++i, weight1 += dW)
+            {
+                if (M > 1) _tile_loadd(7, weight1, strideW);
+                if (M > 0) _tile_dpbusd(0, 4, 6);
+                ApplyMxN<term, type, M, 2 * apply, flush>(dst, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + ds, tail), ds += 2 * apply;
+                if (M > 1) _tile_dpbusd(1, 4, 7);
+                ApplyMxN<term, type, M, 2 * apply, flush>(dst, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + ds, tail), ds += 2 * apply;
+                o = offs[i + 1];
+                _tile_stream_loadd(4, src0 + o, strideS);
+                weight0 += dW;
+                if (M > 0) _tile_loadd(6, weight0, strideW);
+            }
+            for (; i < n1; ++i, weight1 += dW)
+            {
+                if (M > 1) _tile_loadd(7, weight1, strideW);
+                if (M > 0) _tile_dpbusd(0, 4, 6);
+                if (M > 1) _tile_dpbusd(1, 4, 7);
+                o = offs[i + 1];
+                _tile_stream_loadd(4, src0 + o, strideS);
+                weight0 += dW;
+                if (M > 0) _tile_loadd(6, weight0, strideW);
+            }
+            if (M > 1) _tile_loadd(7, weight1, strideW);
+
+            if (M > 0) _tile_dpbusd(0, 4, 6);
+            ApplyMxN<term, type, M, 2 * apply, flush>(dst, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + ds, tail), ds += 2 * apply;
+            if (M > 0) _tile_stored(0, buf2 + 0, strideB);
+
+            if (M > 1) _tile_dpbusd(1, 4, 7);
+            ApplyMxN<term, type, M, 2 * apply, flush>(dst, dD, buf0 + ds * dB, dB, sBias, sNorm, iLo, iHi, iScale, params, dNorm, dZero, mask + ds, tail), ds += 2 * apply;
+            if (M > 1) _tile_stored(1, buf2 + F, strideB);
+        }
+
+        template<Term8iType term, SimdConvolutionActivationType type, int M, int apply, int flush> void QuantizedConvolutionNhwcSpecV1_Nx32x32M(
+            const uint8_t* src0, const ConvParam& p, const AlgParam& a, size_t dstS, const int* offs, size_t nK, int update, const int8_t* weight0,
+            const int32_t* sBias, const float* sNorm, const __m512i& iLo, const __m512i& iHi, const __m512& iScale, const float* params, __m512* _params,
+            const __m512& dNorm, const __m512i& dZero, int32_t* buf, const int* mask, uint8_t* dst, __mmask32 tail)
+        {
+            int dB = (int)a.macroD, dD = int(p.dstC * a.elem), dS = (int)a.microC;
+
+            __m512i _sBias[2];
+            if (M > 0) _sBias[0] = _mm512_loadu_si512((__m512i*)sBias + 0);
+            if (M > 1) _sBias[1] = _mm512_loadu_si512((__m512i*)sBias + 1);
+            __m512 _sNorm[2];
+            if (M > 0) _sNorm[0] = _mm512_loadu_ps(sNorm + 0 * F);
+            if (M > 1) _sNorm[1] = _mm512_loadu_ps(sNorm + 1 + F);
+            if (type == SimdConvolutionActivationPrelu)
+            {
+                if (M > 0) _params[0] = _mm512_loadu_ps(params + 0 * F);
+                if (M > 1) _params[1] = _mm512_loadu_ps(params + 1 * F);
+            }
+
+            size_t pds = 0;
+            QuantizedConvolutionNhwcSpecV1_1x32x32<term, type, M, 0, flush>(src0, p, a, offs, nK, update, weight0, 
+                _sBias, _sNorm, iLo, iHi, iScale, _params, dNorm, dZero, buf, mask, dst, tail);
+            for (size_t cds = 32; cds < dstS; pds += 32)
+            {
+                if (cds + 16 >= dstS)
+                {
+                    QuantizedConvolutionNhwcSpecV1_1x16x32<term, type, M, apply, flush>(src0 + cds * dS, p, a, offs, nK, update, weight0, 
+                        _sBias, _sNorm, iLo, iHi, iScale, _params, dNorm, dZero, buf + cds * dB, mask + pds, dst, tail);
+                    cds += 16;
+                }
+                else
+                {
+                    QuantizedConvolutionNhwcSpecV1_1x32x32<term, type, M, apply, flush>(src0 + cds * dS, p, a, offs, nK, update, weight0, 
+                        _sBias, _sNorm, iLo, iHi, iScale, _params, dNorm, dZero, buf + cds * dB, mask + pds, dst, tail);
+                    cds += 32;
+                }
+            }
+            size_t dstS8 = dstS & (~7);
+            for (; pds < dstS8; pds += 8)
+            {
+                ApplyMxN<term, type, M, 8, flush>(dst, dD, buf + pds * dB, dB, _sBias, _sNorm, iLo, iHi, iScale, _params, dNorm, dZero, mask + pds, tail);
+            }
+            for (; pds < dstS; ++pds)
+            {
+                ApplyMxN<term, type, M, 1, flush>(dst, dD, buf + pds * dB, dB, _sBias, _sNorm, iLo, iHi, iScale, _params, dNorm, dZero, mask + pds, tail);
+            }
+        }
+
+        //-------------------------------------------------------------------------------------------------
+
+        typedef void (*QuantizedConvolutionNhwcSpecV1_LastPtr)(const uint8_t* src0, const ConvParam& p, const AlgParam& a, size_t dstS, 
+            const int* offs, size_t nK, int update, const int8_t* weight0, const int32_t* sBias, const float* sNorm, const __m512i& iLo, 
+            const __m512i& iHi, const __m512& iScale, const float* params, __m512* _params, const __m512& dNorm, const __m512i& dZero,
+            int32_t* buf, const int* mask, uint8_t* dst, __mmask32 tail);
+
+        template<Term8iType term, SimdConvolutionActivationType type, int apply, int flush> void QuantizedConvolutionNhwcSpecV1_Last(
+            const uint8_t* src, const ConvParam& p, const AlgParam& a, const int* srcOffs, size_t dstC, size_t dstS, size_t nK, int update, 
+            const int8_t* weight, int32_t* buf, const int32_t* sBias, const float* sNorm, int32_t iZero, float iScale,
+            const float* params, float dNorm, int32_t dZero, const int* dstMask, const int* dstOffs, uint8_t* dst)
+        {
+            size_t n = 256, n1 = dstS, nn = AlignLoAny(n1, n), dW = a.K * a.microD;
+            size_t dB = a.macroD, dD = p.dstC * a.elem, dS = a.microC;
+
+            size_t dstC32 = AlignLo(dstC, 32), dstCt = dstC - dstC32;
+            __mmask32 tailD = term == Term8iLast8u ? TailMask32(dstCt) : (__mmask32)TailMask16(dstCt - AlignLo(dstCt - 1, 16));
+            QuantizedConvolutionNhwcSpecV1_LastPtr mainConv = QuantizedConvolutionNhwcSpecV1_Nx32x32M<term, type, 2, apply, flush>;
+            QuantizedConvolutionNhwcSpecV1_LastPtr tailConv = dstCt > 16 ? QuantizedConvolutionNhwcSpecV1_Nx32x32M<term, type, 2, apply, flush> :
+                QuantizedConvolutionNhwcSpecV1_Nx32x32M<term, type, 1, apply, flush>;
+
+            __m512 _iScale, _params[2], _dNorm;
+            __m512i _dZero = _mm512_set1_epi32(dZero), _iLo, _iHi;
+            if (type != SimdConvolutionActivationIdentity)
+            {
+                _iLo = _mm512_set1_epi32(-iZero);
+                _iHi = _mm512_set1_epi32(255 - iZero);
+                _iScale = _mm512_set1_ps(iScale);
+                _dNorm = _mm512_set1_ps(dNorm);
+                _params[0] = _mm512_set1_ps(params[0]);
+                if (type == SimdConvolutionActivationRestrictRange ||
+                    type == SimdConvolutionActivationHswish ||
+                    type == SimdConvolutionActivationHardSigmoid)
+                    _params[1] = _mm512_set1_ps(params[1]);
+            }
+
+            SetTileConfFull();
+            for (size_t i = 0; i < n1;)
+            {
+                size_t dn = (n1 - i >= n + 32 ? n : n1 - i);
+                const uint8_t* s = src + i * dS;
+                const int8_t* w = weight;
+                int32_t* b = buf + i * dB;
+                uint8_t* d = dst + (dstOffs[i / 32] - dstOffs[0]) * dD;
+                size_t dc = 0;
+                for (; dc < dstC32; dc += DF, w += dW)
+                    mainConv(s, p, a, dn, srcOffs, nK, update, w, sBias + dc, sNorm + dc, _iLo, _iHi, _iScale, params + dc, 
+                        _params, _dNorm, _dZero, b + dc, dstMask + i, d + dc * a.elem, __mmask32(-1));
+                if (dc < dstC)
+                    tailConv(s, p, a, dn, srcOffs, nK, update, w, sBias + dc, sNorm + dc, _iLo, _iHi, _iScale, params + dc, 
+                        _params, _dNorm, _dZero, b + dc, dstMask + i, d + dc * a.elem, tailD);
+                i += dn;
+            }
+        }
+
         //-----------------------------------------------------------------------------------------
 
         template <Term8iType term, SimdConvolutionActivationType type, int flush> SIMD_INLINE void SetLastConvV3(const ConvParam& p, size_t nK, LastConvPtr& lastConv)
         {
-            //if (nK >= 8)
-            //    lastConv = QuantizedConvolutionNhwcSpecV1_Last<term, type, 1, flush>;
-            //else if (nK >= 4)
-            //    lastConv = QuantizedConvolutionNhwcSpecV1_Last<term, type, 2, flush>;
-            //else if (nK >= 2)
-            //    lastConv = QuantizedConvolutionNhwcSpecV1_Last<term, type, 4, flush>;
-            //else
+            if (nK >= 8)
+                lastConv = QuantizedConvolutionNhwcSpecV1_Last<term, type, 1, flush>;
+            else if (nK >= 4)
+                lastConv = QuantizedConvolutionNhwcSpecV1_Last<term, type, 2, flush>;
+            else if (nK >= 2)
+                lastConv = QuantizedConvolutionNhwcSpecV1_Last<term, type, 4, flush>;
+            else
                 lastConv = NULL;
         }
 
