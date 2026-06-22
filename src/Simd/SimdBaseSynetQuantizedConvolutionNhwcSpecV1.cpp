@@ -196,6 +196,13 @@ namespace Simd
                     }
                 }
             }
+            std::cout << " a.F " << a.F << std::endl;
+            std::cout << " a.K " << a.K << std::endl;
+            std::cout << " a.dstC " << a.dstC << std::endl;
+            std::cout << " a.microD " << a.microD << std::endl;
+            std::cout << " a.macroD " << a.macroD << std::endl;
+            std::cout << " a.bufS " << a.bufS << std::endl;
+            std::cout << " a.bufD " << a.bufD << std::endl;
         }
 
         void SynetQuantizedConvolutionNhwcSpecV1::Forward(const uint8_t* src, uint8_t* buf8, uint8_t* dst)
@@ -242,6 +249,8 @@ namespace Simd
                         size_t dyEnd = Simd::Min(dyBeg + a.macroH, p.dstH);
                         size_t dstS = _maSumOffs[dyN + 1] - _maSumOffs[dyN];
                         size_t miIdx = _maSumOffs[dyN] / a.microS;
+                        std::cout << " bufOffs + _maBufOffs[dyN] * dS " << bufOffs + _maBufOffs[dyN] * dS << std::endl;
+                        std::cout << " _maSumOffs[dyN] * dB " << _maSumOffs[dyN] * dB << std::endl;
                         if (mad == 0 && nk == 0)
                             _preprocess(src, _srcZero[0], p, a, dyBeg, dyEnd, dyEnd == p.dstH ? 1 : 0, buf);
                         if (nk == _nK.size - 1)
@@ -310,7 +319,8 @@ namespace Simd
         {
             const size_t K = p.srcC * p.kernelX * p.kernelY;
             const size_t M = p.batch * p.dstH * p.dstW;
-            return p.trans != 0 && p.group == 1 && p.IsDilation(1) && p.IsStride(1) && !p.IsKernel(1) && p.dstC >= 4 && K >= 32 && M >= 16 && p.srcC >= 9;
+            return p.trans != 0 && p.group == 1 && p.IsDilation(1) && p.IsStride(1) && 
+                !p.IsKernel(1) && p.dstC >= 4 && K >= 32 && M >= 16 && p.srcC >= 9 && 0;
         }
     }
 #endif

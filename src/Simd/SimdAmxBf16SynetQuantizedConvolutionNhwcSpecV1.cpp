@@ -675,9 +675,9 @@ namespace Simd
             size_t nK = _nK[_nK.size - 1];
             switch (p.activation)
             {
-            case SimdConvolutionActivationIdentity: SetLastConvV3<SimdConvolutionActivationRestrictRange>(p, nK, _lastConv); break;
-            case SimdConvolutionActivationRelu: SetLastConvV3<SimdConvolutionActivationRestrictRange>(p, nK, _lastConv); break;
-            case SimdConvolutionActivationLeakyRelu: SetLastConvV3<SimdConvolutionActivationPrelu>(p, nK, _lastConv); break;
+            case SimdConvolutionActivationIdentity: SetLastConvV3<SimdConvolutionActivationIdentity>(p, nK, _lastConv); break;
+            case SimdConvolutionActivationRelu: SetLastConvV3<SimdConvolutionActivationRelu>(p, nK, _lastConv); break;
+            case SimdConvolutionActivationLeakyRelu: SetLastConvV3<SimdConvolutionActivationLeakyRelu>(p, nK, _lastConv); break;
             case SimdConvolutionActivationRestrictRange: SetLastConvV3<SimdConvolutionActivationRestrictRange>(p, nK, _lastConv); break;
             case SimdConvolutionActivationPrelu: SetLastConvV3<SimdConvolutionActivationPrelu>(p, nK, _lastConv); break;
             case SimdConvolutionActivationElu: SetLastConvV3<SimdConvolutionActivationElu>(p, nK, _lastConv); break;
