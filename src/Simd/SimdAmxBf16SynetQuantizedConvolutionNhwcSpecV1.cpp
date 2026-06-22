@@ -138,9 +138,228 @@ namespace Simd
             }
         }
 
+        //-----------------------------------------------------------------------------------------
+
+        SIMD_INLINE void QuantizedConvolutionNhwcSpecV1_Body32x32(const uint8_t* src0, const ConvParam& p, 
+            const AlgParam& a, const int* offs, size_t nK, int update, const int8_t* weight0, int32_t* buf0)
+        {
+            int dB = (int)a.macroD, dS = (int)a.microC, strideS = dS, dW = 1024, strideW = 64, strideB = dB * 4;
+            const int8_t* weight1 = weight0 + a.K * F;
+            const uint8_t* src1 = src0 + 16 * dS;
+            int32_t* buf1 = buf0 + 16 * dB;
+
+            if (update)
+            {
+                _tile_stream_loadd(0, buf0 + 0, strideB);
+                _tile_stream_loadd(1, buf0 + F, strideB);
+                _tile_stream_loadd(2, buf1 + 0, strideB);
+                _tile_stream_loadd(3, buf1 + F, strideB);
+            }
+            else
+            {
+                _tile_zero(0);
+                _tile_zero(1);
+                _tile_zero(2);
+                _tile_zero(3);
+            }
+
+            int n1 = (int)nK - 1, o = offs[0];
+            _tile_stream_loadd(4, src0 + o, strideS);
+            _tile_loadd(6, weight0, strideW);
+            for (int i = 0; i < n1; ++i, weight1 += dW)
+            {
+                _tile_stream_loadd(5, src1 + o, strideS);
+                _tile_loadd(7, weight1, strideW);
+                _tile_dpbusd(0, 4, 6);
+                _tile_dpbusd(1, 4, 7);
+                o = offs[i + 1];
+                _tile_stream_loadd(4, src0 + o, strideS);
+                _tile_dpbusd(2, 5, 6);
+                weight0 += dW;
+                _tile_loadd(6, weight0, strideW);
+                _tile_dpbusd(3, 5, 7);
+            }
+            _tile_loadd(7, weight1, strideW);
+            _tile_stream_loadd(5, src1 + offs[n1], strideS);
+
+            _tile_dpbusd(0, 4, 6);
+            _tile_stored(0, buf0 + 0, strideB);
+            TileMoveToMemory(buf0 + 0, dB);
+
+            _tile_dpbusd(1, 4, 7);
+            _tile_stored(1, buf0 + F, strideB);
+            TileMoveToMemory(buf0 + F, dB);
+
+            _tile_dpbusd(2, 5, 6);
+            _tile_stored(2, buf1 + 0, strideB);
+            TileMoveToMemory(buf1 + 0, dB);
+
+            _tile_dpbusd(3, 5, 7);
+            _tile_stored(3, buf1 + F, strideB);
+            TileMoveToMemory(buf1 + F, dB);
+        }
+
+        SIMD_INLINE void QuantizedConvolutionNhwcSpecV1_Body32x16(const uint8_t* src0, const ConvParam& p, 
+            const AlgParam& a, const int* offs, size_t nK, int update, const int8_t* weight0, int32_t* buf0)
+        {
+            int dB = (int)a.macroD, dS = (int)a.microC, strideS = dS, dW = 1024, strideW = 64, strideB = dB * 4;
+            const uint8_t* src1 = src0 + 16 * dS;
+            int32_t* buf1 = buf0 + 16 * dB;
+
+            if (update)
+            {
+                _tile_stream_loadd(0, buf0 + 0, strideB);
+                _tile_stream_loadd(2, buf1 + 0, strideB);
+            }
+            else
+            {
+                _tile_zero(0);
+                _tile_zero(2);
+            }
+
+            int n1 = (int)nK - 1, o = offs[0];
+            _tile_loadd(4, src0 + o, strideS);
+            for (int i = 0; i < n1; ++i)
+            {
+                _tile_stream_loadd(6, weight0, strideW);
+                _tile_loadd(5, src1 + o, strideS);
+                _tile_dpbusd(0, 4, 6);
+                o = offs[i + 1];
+                _tile_loadd(4, src0 + o, strideS);
+                _tile_dpbusd(2, 5, 6);
+                weight0 += dW;
+            }
+            _tile_stream_loadd(6, weight0, strideW);
+            _tile_loadd(5, src1 + offs[n1], strideS);
+
+            _tile_dpbusd(0, 4, 6);
+            _tile_stored(0, buf0 + 0, strideB);
+            TileMoveToMemory(buf0 + 0, dB);
+
+            _tile_dpbusd(2, 5, 6);
+            _tile_stored(2, buf1 + 0, strideB);
+            TileMoveToMemory(buf1 + 0, dB);
+        }
+
+        SIMD_INLINE void QuantizedConvolutionNhwcSpecV1_Body16x32(const uint8_t* src0, const ConvParam& p, 
+            const AlgParam& a, const int* offs, size_t nK, int update, const int8_t* weight0, int32_t* buf0)
+        {
+            int dB = (int)a.macroD, dS = (int)a.microC, strideS = dS, dW = 1024, strideW = 64, strideB = dB * 4;
+            const int8_t* weight1 = weight0 + a.K * F;
+
+            if (update)
+            {
+                _tile_stream_loadd(0, buf0 + 0, strideB);
+                _tile_stream_loadd(1, buf0 + F, strideB);
+            }
+            else
+            {
+                _tile_zero(0);
+                _tile_zero(1);
+            }
+
+            int n1 = (int)nK - 1;
+            _tile_loadd(6, weight0, strideW);
+            for (int i = 0; i < n1; ++i, weight1 += dW)
+            {
+                _tile_stream_loadd(4, src0 + offs[i], strideS);
+                _tile_loadd(7, weight1, strideW);
+                _tile_dpbusd(0, 4, 6);
+                weight0 += dW;
+                _tile_loadd(6, weight0, strideW);
+                _tile_dpbusd(1, 4, 7);
+            }
+            _tile_stream_loadd(4, src0 + offs[n1], strideS);
+            _tile_loadd(7, weight1, strideW);
+
+            _tile_dpbusd(0, 4, 6);
+            _tile_stored(0, buf0 + 0, strideB);
+            TileMoveToMemory(buf0 + 0, dB);
+
+            _tile_dpbusd(1, 4, 7);
+            _tile_stored(1, buf0 + F, strideB);
+            TileMoveToMemory(buf0 + F, dB);
+        }
+
+        SIMD_INLINE void QuantizedConvolutionNhwcSpecV1_Body16x16(const uint8_t* src0, const ConvParam& p, 
+            const AlgParam& a, const int* offs, size_t nK, int update, const int8_t* weight0, int32_t* buf0)
+        {
+            int dB = (int)a.macroD, dS = (int)a.microC, strideS = dS, dW = 1024, strideW = 64, strideB = dB * 4;
+
+            if (update)
+            {
+                _tile_stream_loadd(0, buf0 + 0, strideB);
+            }
+            else
+            {
+                _tile_zero(0);
+            }
+
+            int n = (int)nK;
+            for (int i = 0; i < n; ++i)
+            {
+                _tile_stream_loadd(4, src0 + offs[i], strideS);
+                _tile_loadd(6, weight0, strideW);
+                _tile_dpbusd(0, 4, 6);
+                weight0 += dW;
+            }
+
+            _tile_stored(0, buf0 + 0, strideB);
+            TileMoveToMemory(buf0 + 0, dB);
+        }
+
+        static void QuantizedConvolutionNhwcSpecV1_Body(const uint8_t* src, const ConvParam& p, const AlgParam& a, const int* offs,
+            size_t dstC, size_t dstS, size_t nK, int update, const int8_t* weight, int32_t* buf)
+        {
+            size_t n1 = AlignHi(dstS, 16), n = 32;
+            size_t nn = AlignLo(n1, n), m = n1 - nn, dW = a.K * DF;
+            size_t dB = a.macroD, dS = a.microC;
+
+            SetTileConfFull();
+            for (size_t dc = 0; dc < dstC; dc += DF)
+            {
+                size_t dC = Simd::Min(DF, dstC - dc);
+                size_t i = 0;
+                if (dC > F)
+                {
+                    for (; i < nn; i += n)
+                        QuantizedConvolutionNhwcSpecV1_Body32x32(src + i * dS, p, a, offs, nK, update, weight, buf + i * dB);
+                    if (m)
+                        QuantizedConvolutionNhwcSpecV1_Body16x32(src + i * dS, p, a, offs, nK, update, weight, buf + i * dB);
+                }
+                else
+                {
+                    for (; i < nn; i += n)
+                        QuantizedConvolutionNhwcSpecV1_Body32x16(src + i * dS, p, a, offs, nK, update, weight, buf + i * dB);
+                    if (m)
+                        QuantizedConvolutionNhwcSpecV1_Body16x16(src + i * dS, p, a, offs, nK, update, weight, buf + i * dB);
+                }
+                weight += dW;
+                buf += DF;
+            }
+        }
 
         //-----------------------------------------------------------------------------------------
 
+        template <Term8iType term, SimdConvolutionActivationType type, int flush> SIMD_INLINE void SetLastConvV3(const ConvParam& p, size_t nK, LastConvPtr& lastConv)
+        {
+            //if (nK >= 8)
+            //    lastConv = QuantizedConvolutionNhwcSpecV1_Last<term, type, 1, flush>;
+            //else if (nK >= 4)
+            //    lastConv = QuantizedConvolutionNhwcSpecV1_Last<term, type, 2, flush>;
+            //else if (nK >= 2)
+            //    lastConv = QuantizedConvolutionNhwcSpecV1_Last<term, type, 4, flush>;
+            //else
+                lastConv = NULL;
+        }
+
+        template <SimdConvolutionActivationType type> SIMD_INLINE void SetLastConvV3(const ConvParam& p, size_t nK, LastConvPtr& lastConv)
+        {
+            if (p.dstT == SimdTensorData8u)
+                SetLastConvV3<Term8iLast8u, type, 0>(p, nK, lastConv);
+            else
+                SetLastConvV3<Term8iLast32f, type, 0>(p, nK, lastConv);
+        }
 
         //-----------------------------------------------------------------------------------------
 
@@ -158,7 +377,23 @@ namespace Simd
             }
             else
                 assert(0);
-            //_convolution = QuantizedConvolutionNhwcSpecV0_2;
+            _bodyConv = QuantizedConvolutionNhwcSpecV1_Body;
+            size_t nK = _nK[_nK.size - 1];
+            switch (p.activation)
+            {
+            case SimdConvolutionActivationIdentity: SetLastConvV3<SimdConvolutionActivationRestrictRange>(p, nK, _lastConv); break;
+            case SimdConvolutionActivationRelu: SetLastConvV3<SimdConvolutionActivationRestrictRange>(p, nK, _lastConv); break;
+            case SimdConvolutionActivationLeakyRelu: SetLastConvV3<SimdConvolutionActivationPrelu>(p, nK, _lastConv); break;
+            case SimdConvolutionActivationRestrictRange: SetLastConvV3<SimdConvolutionActivationRestrictRange>(p, nK, _lastConv); break;
+            case SimdConvolutionActivationPrelu: SetLastConvV3<SimdConvolutionActivationPrelu>(p, nK, _lastConv); break;
+            case SimdConvolutionActivationElu: SetLastConvV3<SimdConvolutionActivationElu>(p, nK, _lastConv); break;
+            case SimdConvolutionActivationHswish: SetLastConvV3<SimdConvolutionActivationHswish>(p, nK, _lastConv); break;
+            case SimdConvolutionActivationMish: SetLastConvV3<SimdConvolutionActivationMish>(p, nK, _lastConv); break;
+            case SimdConvolutionActivationHardSigmoid: SetLastConvV3<SimdConvolutionActivationHardSigmoid>(p, nK, _lastConv); break;
+            case SimdConvolutionActivationSwish: SetLastConvV3<SimdConvolutionActivationSwish>(p, nK, _lastConv); break;
+            case SimdConvolutionActivationGelu: SetLastConvV3<SimdConvolutionActivationGelu>(p, nK, _lastConv); break;
+            default: assert(0);
+            }
         }
     }
 #endif
