@@ -542,7 +542,7 @@ namespace Simd
             if (M > 1) _sBias[1] = _mm512_loadu_si512((__m512i*)sBias + 1);
             __m512 _sNorm[2];
             if (M > 0) _sNorm[0] = _mm512_loadu_ps(sNorm + 0 * F);
-            if (M > 1) _sNorm[1] = _mm512_loadu_ps(sNorm + 1 + F);
+            if (M > 1) _sNorm[1] = _mm512_loadu_ps(sNorm + 1 * F);
             if (type == SimdConvolutionActivationPrelu)
             {
                 if (M > 0) _params[0] = _mm512_loadu_ps(params + 0 * F);

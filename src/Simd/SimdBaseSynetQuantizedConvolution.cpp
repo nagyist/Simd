@@ -169,7 +169,7 @@ namespace Simd
                     const uint8_t* s0 = src + kc * lds;
                     for (size_t j = 0; j < S; ++j)
                         dst[j] += s0[j] * w0;
-                }                
+                } 
                 wgt += ldw;
                 dst += ldd;
             }
