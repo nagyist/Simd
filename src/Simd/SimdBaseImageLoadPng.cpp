@@ -1056,6 +1056,15 @@ namespace Simd
             SIMD_PERF_FUNC();
 
             int outS = _outN * (_depth == 16 ? 2 : 1);
+            // The IHDR check in ReadHeader bounds _width * _height * _channels, but the
+            // decoded buffer is sized from outS = _outN * (depth == 16 ? 2 : 1), which is up
+            // to four times _channels for a 16-bit grayscale image with a tRNS chunk (_outN
+            // becomes _channels + 1). _width * _height * outS is evaluated in 32-bit and wraps
+            // for such an image once _width * _height reaches 2^30, leaving a near-empty buffer
+            // that the de-filter and interlace loops below overrun. Cap the decoded size the
+            // way the JPEG loader already does (see JpegProcessFrameHeader).
+            if ((uint64_t)_width * _height * outS > INT_MAX)
+                return static_cast<bool>(PngLoadError("too large", "Image too large to decode"));
             if (!_interlace)
                 return CreateImageRaw(data, (int)size, _width, _height);
             Array8u buf(_width * _height * outS);
