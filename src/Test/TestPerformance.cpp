@@ -434,13 +434,14 @@ namespace Test
         for (size_t i = 0; i < enable.Size(); ++i)
             if (enable[i])
                 size++;
-        TablePtr table(new Table(1 + size + (enable[1] ? size - 2 : 0) + (size > 3 ? size - 2: 0) + (align ? size : 0), 1 + functions.size()));
-        AddHeader(*table, names, enable, size > 3, align);
+        size_t prev = (size > 3 && enable[1]) || (size > 2 && !enable[1]);
+        TablePtr table(new Table(1 + size + (enable[1] ? size - 2 : 0) + (prev ? size - 2: 0) + (align ? size : 0), 1 + functions.size()));
+        AddHeader(*table, names, enable, prev, align);
         size_t row = 0;
         table->SetRowProp(row, true, true);
-        AddRow(*table, row++, String("Common, ") + (timeMax < 0.001 ? "us" : "ms"), common, enable, size > 3, align, timeMax);
+        AddRow(*table, row++, String("Common, ") + (timeMax < 0.001 ? "us" : "ms"), common, enable, prev, align, timeMax);
         for (FunctionStatisticMap::const_iterator it = functions.begin(); it != functions.end(); ++it)
-            AddRow(*table, row++, it->first, it->second, enable, size > 3, align, timeMax);
+            AddRow(*table, row++, it->first, it->second, enable, prev, align, timeMax);
         return table;
     }
 

@@ -528,29 +528,27 @@ namespace Simd
         }
 
         template<Term16bType term, SimdConvolutionActivationType type, int M, int N, int flush> static SIMD_INLINE void ApplyMxN(
-            uint8_t*& ptr, int dP, float* buf, int dB, const __m512* bias, const __m512* params, const int* mask, __mmask32 tail = __mmask32(-1))
+            uint8_t*& ptr, int dP, float* buf, const __m512* bias, const __m512* params, const int* mask, __mmask32 tail = __mmask32(-1))
         {
-            if (N > 0) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 0 * dB, bias, params, mask + 0, tail);
-            if (N > 1) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 1 * dB, bias, params, mask + 1, tail);
-            if (N > 2) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 2 * dB, bias, params, mask + 2, tail);
-            if (N > 3) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 3 * dB, bias, params, mask + 3, tail);
-            if (N > 4) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 4 * dB, bias, params, mask + 4, tail);
-            if (N > 5) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 5 * dB, bias, params, mask + 5, tail);
-            if (N > 6) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 6 * dB, bias, params, mask + 6, tail);
-            if (N > 7) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 7 * dB, bias, params, mask + 7, tail);
+            if (N > 0) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 0 * DF, bias, params, mask + 0, tail);
+            if (N > 1) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 1 * DF, bias, params, mask + 1, tail);
+            if (N > 2) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 2 * DF, bias, params, mask + 2, tail);
+            if (N > 3) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 3 * DF, bias, params, mask + 3, tail);
+            if (N > 4) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 4 * DF, bias, params, mask + 4, tail);
+            if (N > 5) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 5 * DF, bias, params, mask + 5, tail);
+            if (N > 6) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 6 * DF, bias, params, mask + 6, tail);
+            if (N > 7) ApplyMx1<term, type, M, flush>(ptr, dP, buf + 7 * DF, bias, params, mask + 7, tail);
         }
 
         //-------------------------------------------------------------------------------------------------
 
         template<Term16bType term, SimdConvolutionActivationType type, int M, int apply, int flush> void Convolution16bNhwcSpecV3_1x32x32(
             const uint16_t* src0, const ConvParam& p, const AlgParam& a, const int* offs, size_t nK, int zero, const uint16_t* weight0, 
-            const __m512* bias, const __m512* params, float* buf2, const int* mask, uint8_t * &dst, __mmask32 tail)
+            const __m512* bias, const __m512* params, float *sum0, float *buf1, float* buf2, const int* mask, uint8_t * &dst, __mmask32 tail)
         {
-            int dD = int(p.dstC * a.elem), dB = (int)a.macroD, dS = (int)a.microC, strideS = dS * 2, dW = 512, strideW = 64, strideB = dB * 4;
+            int dD = int(p.dstC * a.elem), dB = (int)DF, dS = (int)a.microC, strideS = dS * 2, dW = 512, strideW = 64, strideB = dB * 4;
             const uint16_t* weight1 = weight0 + a.K * F;
             const uint16_t* src1 = src0 + 16 * dS;
-            float* buf0 = buf2 - 32 * dB;
-            float* buf3 = buf2 + 16 * dB;
 
             if (zero)
             {
@@ -561,10 +559,12 @@ namespace Simd
             }
             else
             {
-                if (M > 0) _tile_stream_loadd(0, buf2 + 0, strideB);
-                if (M > 1) _tile_stream_loadd(1, buf2 + F, strideB);
-                if (M > 0) _tile_stream_loadd(2, buf3 + 0, strideB);
-                if (M > 1) _tile_stream_loadd(3, buf3 + F, strideB);
+                int strideB = (int)a.macroD * 4;
+                if (M > 0) _tile_stream_loadd(0, sum0 + 0, strideB);
+                if (M > 1) _tile_stream_loadd(1, sum0 + F, strideB);
+                sum0 += 16 * a.macroD;
+                if (M > 0) _tile_stream_loadd(2, sum0 + 0, strideB);
+                if (M > 1) _tile_stream_loadd(3, sum0 + F, strideB);
             }
 
             int n1 = (int)nK - 1, i = 0, o = offs[0], na = apply ? (8 / apply - 1) : 0, ds = 0;
@@ -574,18 +574,18 @@ namespace Simd
             {
                 if (M > 1) _tile_loadd(7, weight1, strideW);
                 if (M > 0) _tile_dpbf16ps(0, 4, 6);
-                ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, bias, params, mask + ds, tail), ds += apply;
+                ApplyMxN<term, type, M, apply, flush>(dst, dD, buf1 + ds * DF, bias, params, mask + ds, tail), ds += apply;
                 _tile_stream_loadd(5, src1 + o, strideS);
                 if (M > 1) _tile_dpbf16ps(1, 4, 7);
-                ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, bias, params, mask + ds, tail), ds += apply;
+                ApplyMxN<term, type, M, apply, flush>(dst, dD, buf1 + ds * DF, bias, params, mask + ds, tail), ds += apply;
                 o = offs[i + 1];
                 _tile_stream_loadd(4, src0 + o, strideS);
                 if (M > 0) _tile_dpbf16ps(2, 5, 6);
-                ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, bias, params, mask + ds, tail), ds += apply;
+                ApplyMxN<term, type, M, apply, flush>(dst, dD, buf1 + ds * DF, bias, params, mask + ds, tail), ds += apply;
                 weight0 += dW;
                 if (M > 0) _tile_loadd(6, weight0, strideW);
                 if (M > 1) _tile_dpbf16ps(3, 5, 7);
-                ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, bias, params, mask + ds, tail), ds += apply;
+                ApplyMxN<term, type, M, apply, flush>(dst, dD, buf1 + ds * DF, bias, params, mask + ds, tail), ds += apply;
             }
             for (; i < n1; ++i, weight1 += dW)
             {
@@ -604,30 +604,29 @@ namespace Simd
             _tile_stream_loadd(5, src1 + offs[n1], strideS);
 
             if (M > 0) _tile_dpbf16ps(0, 4, 6);
-            ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, bias, params, mask + ds, tail), ds += apply;
+            ApplyMxN<term, type, M, apply, flush>(dst, dD, buf1 + ds * DF, bias, params, mask + ds, tail), ds += apply;
             if (M > 0) _tile_stored(0, buf2 + 0, strideB);
 
             if (M > 1) _tile_dpbf16ps(1, 4, 7);
-            ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, bias, params, mask + ds, tail), ds += apply;
+            ApplyMxN<term, type, M, apply, flush>(dst, dD, buf1 + ds * DF, bias, params, mask + ds, tail), ds += apply;
             if (M > 1) _tile_stored(1, buf2 + F, strideB);
-
+            buf2 += 16 * DF;
             if (M > 0) _tile_dpbf16ps(2, 5, 6);
-            ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, bias, params, mask + ds, tail), ds += apply;
-            if (M > 0) _tile_stored(2, buf3 + 0, strideB);
+            ApplyMxN<term, type, M, apply, flush>(dst, dD, buf1 + ds * DF, bias, params, mask + ds, tail), ds += apply;
+            if (M > 0) _tile_stored(2, buf2 + 0, strideB);
 
             if (M > 1) _tile_dpbf16ps(3, 5, 7);
-            ApplyMxN<term, type, M, apply, flush>(dst, dD, buf0 + ds * dB, dB, bias, params, mask + ds, tail), ds += apply;
-            if (M > 1) _tile_stored(3, buf3 + F, strideB);
+            ApplyMxN<term, type, M, apply, flush>(dst, dD, buf1 + ds * DF, bias, params, mask + ds, tail), ds += apply;
+            if (M > 1) _tile_stored(3, buf2 + F, strideB);
         }
 
         template<Term16bType term, SimdConvolutionActivationType type, int M, int apply, int flush> void Convolution16bNhwcSpecV3_1x16x32(
             const uint16_t* src0, const ConvParam& p, const AlgParam& a, const int* offs, size_t nK, int zero, const uint16_t* weight0,
-            const __m512* bias, const __m512* params, float* buf2, const int* mask, uint8_t*& dst, __mmask32 tail)
+            const __m512* bias, const __m512* params, float* sum0, float* buf1, float* buf2, const int* mask, uint8_t*& dst, __mmask32 tail)
         {
-            int dD = int(p.dstC * a.elem), dB = (int)a.macroD, dS = (int)a.microC, strideS = dS * 2, dW = 512, strideW = 64, strideB = dB * 4;
+            int dD = int(p.dstC * a.elem), dB = (int)DF, dS = (int)a.microC, strideS = dS * 2, dW = 512, strideW = 64, strideB = dB * 4;
             const uint16_t* weight1 = weight0 + a.K * F;
             const uint16_t* src1 = src0 + 16 * dS;
-            float* buf0 = buf2 - 32 * dB;
 
             if (zero)
             {
@@ -636,8 +635,9 @@ namespace Simd
             }
             else
             {
-                if (M > 0) _tile_stream_loadd(0, buf2 + 0, strideB);
-                if (M > 1) _tile_stream_loadd(1, buf2 + F, strideB);
+                int strideB = (int)a.macroD * 4;
+                if (M > 0) _tile_stream_loadd(0, sum0 + 0, strideB);
+                if (M > 1) _tile_stream_loadd(1, sum0 + F, strideB);
             }
 
             int n1 = (int)nK - 1, i = 0, o = offs[0], na = apply ? (8 / apply - 1) : 0, ds = 0;
@@ -647,9 +647,9 @@ namespace Simd
             {
                 if (M > 1) _tile_loadd(7, weight1, strideW);
                 if (M > 0) _tile_dpbf16ps(0, 4, 6);
-                ApplyMxN<term, type, M, 2 * apply, flush>(dst, dD, buf0 + ds * dB, dB, bias, params, mask + ds, tail), ds += 2 * apply;
+                ApplyMxN<term, type, M, 2 * apply, flush>(dst, dD, buf1 + ds * DF, bias, params, mask + ds, tail), ds += 2 * apply;
                 if (M > 1) _tile_dpbf16ps(1, 4, 7);
-                ApplyMxN<term, type, M, 2 * apply, flush>(dst, dD, buf0 + ds * dB, dB, bias, params, mask + ds, tail), ds += 2 * apply;
+                ApplyMxN<term, type, M, 2 * apply, flush>(dst, dD, buf1 + ds * DF, bias, params, mask + ds, tail), ds += 2 * apply;
                 o = offs[i + 1];
                 _tile_stream_loadd(4, src0 + o, strideS);
                 weight0 += dW;
@@ -668,19 +668,20 @@ namespace Simd
             if (M > 1) _tile_loadd(7, weight1, strideW);
 
             if (M > 0) _tile_dpbf16ps(0, 4, 6);
-            ApplyMxN<term, type, M, 2 * apply, flush>(dst, dD, buf0 + ds * dB, dB, bias, params, mask + ds, tail), ds += 2 * apply;
+            ApplyMxN<term, type, M, 2 * apply, flush>(dst, dD, buf1 + ds * DF, bias, params, mask + ds, tail), ds += 2 * apply;
             if (M > 0) _tile_stored(0, buf2 + 0, strideB);
 
             if (M > 1) _tile_dpbf16ps(1, 4, 7);
-            ApplyMxN<term, type, M, 2 * apply, flush>(dst, dD, buf0 + ds * dB, dB, bias, params, mask + ds, tail), ds += 2 * apply;
+            ApplyMxN<term, type, M, 2 * apply, flush>(dst, dD, buf1 + ds * DF, bias, params, mask + ds, tail), ds += 2 * apply;
             if (M > 1) _tile_stored(1, buf2 + F, strideB);
         }
 
         template<Term16bType term, SimdConvolutionActivationType type, int M, int apply, int flush> void Convolution16bNhwcSpecV3_Nx32x32M(
             const uint16_t* src0, const ConvParam& p, const AlgParam& a, size_t dstS, const int* offs, size_t nK, int zero, const uint16_t* weight0,
-            const float* bias, const float* params, __m512* _params, float* buf, const int* mask, uint8_t* dst, __mmask32 tail)
+            const float* bias, const float* params, __m512* _params, float *sum0, float* buf1, const int* mask, uint8_t* dst, __mmask32 tail)
         {
             int dB = (int)a.macroD, dD = int(p.dstC * a.elem), dS = (int)a.microC;
+            float* buf2 = buf1 + 1024;
 
             __m512 _bias[2];
             if (M > 0) _bias[0] = _mm512_loadu_ps(bias + 0 * F);
@@ -692,39 +693,40 @@ namespace Simd
             }
 
             size_t pds = 0;
-            Convolution16bNhwcSpecV3_1x32x32<term, type, M, 0, flush>(src0, p, a, offs, nK, zero, weight0, _bias, _params, buf, mask, dst, tail);
+            Convolution16bNhwcSpecV3_1x32x32<term, type, M, 0, flush>(src0, p, a, offs, nK, zero, weight0, _bias, _params, sum0, buf1, buf2, mask, dst, tail);
             for (size_t cds = 32; cds < dstS; pds += 32)
             {
+                Swap(buf1, buf2);
                 if (cds + 16 >= dstS)
                 {
-                    Convolution16bNhwcSpecV3_1x16x32<term, type, M, apply, flush>(src0 + cds * dS, p, a, offs, nK, zero, weight0, _bias, _params, buf + cds * dB, mask + pds, dst, tail);
+                    Convolution16bNhwcSpecV3_1x16x32<term, type, M, apply, flush>(src0 + cds * dS, p, a, offs, nK, zero, weight0, _bias, _params, sum0 + cds * dB, buf1, buf2, mask + pds, dst, tail);
                     cds += 16;
                 }
                 else
                 {
-                    Convolution16bNhwcSpecV3_1x32x32<term, type, M, apply, flush>(src0 + cds * dS, p, a, offs, nK, zero, weight0, _bias, _params, buf + cds * dB, mask + pds, dst, tail);
+                    Convolution16bNhwcSpecV3_1x32x32<term, type, M, apply, flush>(src0 + cds * dS, p, a, offs, nK, zero, weight0, _bias, _params, sum0 + cds * dB, buf1, buf2, mask + pds, dst, tail);
                     cds += 32;
                 }
             }
-            size_t dstS8 = dstS & (~7);
-            for (; pds < dstS8; pds += 8)
+            size_t dstS8 = dstS & (~7), ds = 0;
+            for (; pds < dstS8; pds += 8, ds += 8)
             {
-                ApplyMxN<term, type, M, 8, flush>(dst, dD, buf + pds * dB, dB, _bias, _params, mask + pds, tail);
+                ApplyMxN<term, type, M, 8, flush>(dst, dD, buf2 + ds * DF, _bias, _params, mask + pds, tail);
             }
-            for (; pds < dstS; ++pds)
+            for (; pds < dstS; ++pds, ++ds)
             {
-                ApplyMxN<term, type, M, 1, flush>(dst, dD, buf + pds * dB, dB, _bias, _params, mask + pds, tail);
+                ApplyMxN<term, type, M, 1, flush>(dst, dD, buf2 + ds * DF, _bias, _params, mask + pds, tail);
             }
         }
 
         //-------------------------------------------------------------------------------------------------
 
         typedef void (*Convolution16bNhwcSpecV3LastPtr)(const uint16_t* src0, const ConvParam& p, const AlgParam& a, size_t dstS, const int* offs, size_t nK, int zero, 
-            const uint16_t* weight0, const float* bias, const float* params, __m512* _params, float* buf, const int* mask, uint8_t* dst, __mmask32 tail);
+            const uint16_t* weight0, const float* bias, const float* params, __m512* _params, float* sum, float* buf, const int* mask, uint8_t* dst, __mmask32 tail);
 
         template<Term16bType term, SimdConvolutionActivationType type, int apply, int flush> void Convolution16bNhwcSpecV3Last(
             const uint16_t* src, const ConvParam& p, const AlgParam& a, const int* offs, size_t dstC, size_t dstS, size_t nK, int zero,
-            const uint16_t* weight, float* buf, const float* bias, const float* params, const int* mask, const int* dstOffs, uint8_t* dst)
+            const uint16_t* weight, float* sum, float* buf, const float* bias, const float* params, const int* mask, const int* dstOffs, uint8_t* dst)
         {
             size_t n = 256, n1 = dstS, nn = AlignLoAny(n1, n), dW = a.K * a.microD;
             size_t dB = a.macroD, dD = p.dstC * a.elem, dS = a.microC;
@@ -748,13 +750,13 @@ namespace Simd
                 size_t dn = (n1 - i >= n + 32 ? n : n1 - i);
                 const uint16_t* s = src + i * dS;
                 const uint16_t* w = weight;
-                float* b = buf + i * dB;
+                float* b = sum + i * dB;
                 uint8_t* d = dst + (dstOffs[i/32] - dstOffs[0]) * dD;
                 size_t dc = 0;
                 for (; dc < dstC32; dc += DF, w += dW)
-                    mainConv(s, p, a, dn, offs, nK, zero, w, bias + dc, params + dc, _params, b + dc, mask + i, d + dc * a.elem, __mmask32(-1));
+                    mainConv(s, p, a, dn, offs, nK, zero, w, bias + dc, params + dc, _params, b + dc, buf, mask + i, d + dc * a.elem, __mmask32(-1));
                 if (dc < dstC)
-                    tailConv(s, p, a, dn, offs, nK, zero, w, bias + dc, params + dc, _params, b + dc, mask + i, d + dc * a.elem, tailD);
+                    tailConv(s, p, a, dn, offs, nK, zero, w, bias + dc, params + dc, _params, b + dc, buf, mask + i, d + dc * a.elem, tailD);
                 i += dn;
             }
         }

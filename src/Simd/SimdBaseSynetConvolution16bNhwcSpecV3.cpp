@@ -88,7 +88,7 @@ namespace Simd
             a.macroD = Simd::RestrictRange(AlignLoAny(L3 / a.macroC / a.kA / 2, a.microD), a.microD, AlignHiAny(p.dstC, a.microD));
             a.macroD = Simd::Min<size_t>(a.macroD, a.microD * 4);
 
-            a.bufD = AlignHi(a.batch * a.srcH * a.srcW, a.microS) * a.macroD;
+            a.bufD = a.macroC < a.srcC ? AlignHi(a.batch * a.srcH * a.srcW, a.microS) * a.macroD : 0;
 
             a.elem = _elemD;
             a.bufS = (a.batch * a.srcH * a.srcW + a.padE + a.microS) * a.srcC;
@@ -158,7 +158,7 @@ namespace Simd
         size_t SynetConvolution16bNhwcSpecV3::ExternalBufferSize() const
         {
             const AlgParam& a = _alg;
-            size_t size = 0;
+            size_t size = 2048 * sizeof(float);
             size += a.bufS * sizeof(uint16_t);
             size += a.bufD * sizeof(float);
             return size;
@@ -209,28 +209,27 @@ namespace Simd
             const ConvParam& p = _param;
             const AlgParam& a = _alg;
             buf8 = Buffer(buf8);
-            uint16_t* bufS = a.bufS ? Allocate<uint16_t>(buf8, a.bufS) : NULL;
-            float* bufD = a.bufD ? Allocate<float>(buf8, a.bufD) : NULL;
+            uint16_t* tmp = Allocate<uint16_t>(buf8, a.bufS);
+            float* sum = a.bufD ? Allocate<float>(buf8, a.bufD) : NULL;
+            float* buf = Allocate<float>(buf8, 2048);
             for (size_t b = 0; b < p.batch; b += a.batch)
             {
-                uint16_t* buf = bufS ? bufS : (uint16_t*)src;
-                float* sum = bufD ? bufD : (float*)dst;
                 if(a.batch == 1)
-                    ForwardSingle(src, buf, sum, dst);
+                    ForwardSingle(src, tmp, sum, buf, dst);
                 else
-                    ForwardBatch(src, buf, sum, dst);
+                    ForwardBatch(src, tmp, sum, buf, dst);
                 src += _stepS;
                 dst += _stepD;
             }
         }
 
-        void SynetConvolution16bNhwcSpecV3::ForwardSingle(const uint8_t* src, uint16_t* buf, float* sum, uint8_t* dst)
+        void SynetConvolution16bNhwcSpecV3::ForwardSingle(const uint8_t* src, uint16_t* tmp, float* sum, float* buf, uint8_t* dst)
         {
             const ConvParam& p = _param;
             const AlgParam& a = _alg;
             const float* bias = _bias.data, * params = _params.data;
             size_t dS = a.microC, dB = a.macroD, dD = p.dstC * _elemD;
-            size_t bufOffs = ((a.padV - p.padY) * a.srcW + (a.padH - p.padX)) * dS;
+            size_t tmpOffs = ((a.padV - p.padY) * a.srcW + (a.padH - p.padX)) * dS;
             for (size_t mad = 0; mad < p.dstC; mad += a.macroD)
             {
                 size_t macroD = Simd::Min(p.dstC, mad + a.macroD) - mad;
@@ -246,12 +245,12 @@ namespace Simd
                         size_t dstS = _maSumOffs[dyN + 1] - _maSumOffs[dyN];
                         size_t miIdx = _maSumOffs[dyN] / a.microS;
                         if (mad == 0 && zero)
-                            _preprocess(src, p, a, dyBeg, dyEnd, dyEnd == p.dstH ? 1 : 0, buf);
+                            _preprocess(src, p, a, dyBeg, dyEnd, dyEnd == p.dstH ? 1 : 0, tmp);
                         if (nk == _nK.size - 1)
-                            _lastConv(buf + bufOffs + _maBufOffs[dyN] * dS, p, a, srcOffs, macroD, dstS, nK, zero, weight,
-                                sum + _maSumOffs[dyN] * dB, bias, params, _dstMask.data + _maSumOffs[dyN], _miDstOffs.data + miIdx, dst + _miDstOffs[miIdx] * dD);
+                            _lastConv(tmp + tmpOffs + _maBufOffs[dyN] * dS, p, a, srcOffs, macroD, dstS, nK, zero, weight,
+                                sum + _maSumOffs[dyN] * dB, buf, bias, params, _dstMask.data + _maSumOffs[dyN], _miDstOffs.data + miIdx, dst + _miDstOffs[miIdx] * dD);
                         else
-                            _bodyConv(buf + bufOffs + _maBufOffs[dyN] * dS, p, a, srcOffs, macroD, dstS, nK, zero, weight, sum + _maSumOffs[dyN] * dB);
+                            _bodyConv(tmp + tmpOffs + _maBufOffs[dyN] * dS, p, a, srcOffs, macroD, dstS, nK, zero, weight, sum + _maSumOffs[dyN] * dB);
                         dyBeg = dyEnd;
                     }
                     srcOffs += nK;
@@ -264,14 +263,14 @@ namespace Simd
             }
         }
 
-        void SynetConvolution16bNhwcSpecV3::ForwardBatch(const uint8_t* src, uint16_t* buf, float* sum, uint8_t* dst)
+        void SynetConvolution16bNhwcSpecV3::ForwardBatch(const uint8_t* src, uint16_t* tmp, float* sum, float* buf, uint8_t* dst)
         {
             const ConvParam& p = _param;
             const AlgParam& a = _alg;
             const float* bias = _bias.data, * params = _params.data;
             const int* mask = _dstMask.data;
             size_t dstH = p.dstH * a.batch, dstS = _maSumOffs[1] - _maSumOffs[0];
-            size_t bufOffs = ((a.padV - p.padY) * a.srcW + (a.padH - p.padX)) * a.microC;
+            size_t tmpOffs = ((a.padV - p.padY) * a.srcW + (a.padH - p.padX)) * a.microC;
             for (size_t mad = 0; mad < p.dstC; mad += a.macroD)
             {
                 size_t macroD = Simd::Min(p.dstC, mad + a.macroD) - mad;
@@ -286,12 +285,12 @@ namespace Simd
                         size_t dS = p.srcH * p.srcW * p.srcC * _elemS;
                         size_t dB = a.srcH * a.srcW * a.microC;
                         for (size_t b = 0; b < a.batch; ++b)
-                            _preprocess(src + b * dS, p, a, 0, p.dstH, b == a.batch - 1 ? 1 : 0, buf + b * dB);
+                            _preprocess(src + b * dS, p, a, 0, p.dstH, b == a.batch - 1 ? 1 : 0, tmp + b * dB);
                     }
                     if (nk == _nK.size - 1)
-                        _lastConv(buf + bufOffs, p, a, srcOffs, macroD, dstS, nK, zero, weight, sum, bias, params, mask, _miDstOffs.data, dst);
+                        _lastConv(tmp + tmpOffs, p, a, srcOffs, macroD, dstS, nK, zero, weight, sum, buf, bias, params, mask, _miDstOffs.data, dst);
                     else
-                        _bodyConv(buf + bufOffs, p, a, srcOffs, macroD, dstS, nK, zero, weight, sum);
+                        _bodyConv(tmp + tmpOffs, p, a, srcOffs, macroD, dstS, nK, zero, weight, sum);
                     srcOffs += nK;
                     weight += nK * a.microC * a.F;
                 }
