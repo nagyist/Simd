@@ -277,14 +277,14 @@ namespace Simd
                 size_t dstC, size_t dstS, size_t nK, int update, const int8_t* weight, int32_t* sum);
 
             typedef void(*LastConvPtr)(const uint8_t* src, const ConvParam& p, const AlgParam& a, const int* srcOffs, size_t dstC, size_t dstS, 
-                size_t nK, int update, const int8_t* weight, int32_t* sum, const int32_t* sBias, const float* sNorm, int32_t iZero, float iScale, 
+                size_t nK, int update, const int8_t* weight, int32_t* sum, int32_t* buf, const int32_t* sBias, const float* sNorm, int32_t iZero, float iScale,
                 const float* params, float dNorm, int32_t dZero, const int* dstMask, const int* dstOffs, uint8_t* dst);
 
         protected:
             void SetAlgParam();
             virtual void SetWeight(const int8_t* weight);
-            void ForwardSingle(const uint8_t* src, uint8_t* buf, int32_t* sum, uint8_t* dst);
-            void ForwardBatch(const uint8_t* src, uint8_t* buf, int32_t* sum, uint8_t* dst);
+            void ForwardSingle(const uint8_t* src, uint8_t* tmp, int32_t* sum, int32_t* buf, uint8_t* dst);
+            void ForwardBatch(const uint8_t* src, uint8_t* tmp, int32_t* sum, int32_t* buf, uint8_t* dst);
 
 
             AlgParam _alg;
