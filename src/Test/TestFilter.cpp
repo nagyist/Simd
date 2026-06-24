@@ -91,31 +91,34 @@ namespace Test
             typedef void(*FuncPtr)(const uint8_t * src, size_t srcStride, size_t width, size_t height, size_t channelCount, uint8_t * dst, size_t dstStride, int threshold);
 
             FuncPtr func;
-            String description;
+            String desc;
 
-            FuncLM(const FuncPtr & f, const String & d) : func(f), description(d) {}
+            FuncLM(const FuncPtr & f, const String & d) : func(f), desc(d) {}
 
-            void Call(const View & src, View & dst) const
+            void Update(View::Format format, int threshold)
             {
-                TEST_PERFORMANCE_TEST(description);
-                func(src.data, src.stride, src.width, src.height, View::PixelSize(src.format), dst.data, dst.stride, 3);
+                desc = desc + "[" + ToString(View::ChannelCount(format)) + "-" + ToString(threshold) + "]";
+            }
+
+            void Call(const View & src, View & dst, int threshold) const
+            {
+                TEST_PERFORMANCE_TEST(desc);
+                func(src.data, src.stride, src.width, src.height, View::PixelSize(src.format), dst.data, dst.stride, threshold);
             }
         };
     }
 
-#define ARGS_LM(format, width, height, function1, function2) \
-    format, width, height, \
-    FuncLM(function1.func, function1.description + ColorDescription(format)), \
-    FuncLM(function2.func, function2.description + ColorDescription(format))
-
 #define FUNC_LM(function) \
     FuncLM(function, std::string(#function))
 
-    bool LimitFilterAutoTest(View::Format format, int width, int height, const FuncLM & f1, const FuncLM & f2)
+    bool LimitFilterAutoTest(View::Format format, int width, int height, int threshold, FuncLM f1, FuncLM f2)
     {
         bool result = true;
 
-        TEST_LOG_SS(Info, "Test " << f1.description << " & " << f2.description << " [" << width << ", " << height << "].");
+        f1.Update(format, threshold);
+        f2.Update(format, threshold);
+
+        TEST_LOG_SS(Info, "Test " << f1.desc << " & " << f2.desc << " [" << width << ", " << height << "].");
 
         View s(width, height, format, NULL, TEST_ALIGN(width));
         FillRandom(s);
@@ -123,9 +126,9 @@ namespace Test
         View d1(width, height, format, NULL, TEST_ALIGN(width));
         View d2(width, height, format, NULL, TEST_ALIGN(width));
 
-        TEST_EXECUTE_AT_LEAST_MIN_TIME(f1.Call(s, d1));
+        TEST_EXECUTE_AT_LEAST_MIN_TIME(f1.Call(s, d1, threshold));
 
-        TEST_EXECUTE_AT_LEAST_MIN_TIME(f2.Call(s, d2));
+        TEST_EXECUTE_AT_LEAST_MIN_TIME(f2.Call(s, d2, threshold));
 
         result = result && Compare(d1, d2, 0, true, 64);
 
@@ -138,8 +141,10 @@ namespace Test
 
         for (View::Format format = View::Gray8; format <= View::Bgra32; format = View::Format(format + 1))
         {
-            result = result && LimitFilterAutoTest(ARGS_LM(format, W, H, f1, f2));
-            result = result && LimitFilterAutoTest(ARGS_LM(format, W + O, H - O, f1, f2));
+            result = result && LimitFilterAutoTest(format, W, H, 1, f1, f2);
+            result = result && LimitFilterAutoTest(format, W + O, H - O, 1, f1, f2);
+            result = result && LimitFilterAutoTest(format, W, H, 2, f1, f2);
+            result = result && LimitFilterAutoTest(format, W + O, H - O, 2, f1, f2);
         }
 
         return result;
