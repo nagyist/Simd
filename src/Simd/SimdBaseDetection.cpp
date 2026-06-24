@@ -209,6 +209,15 @@ namespace Simd
                 int subsetSize = (data->ncategories + 31) / 32;
                 int nodeStep = 3 + (data->ncategories > 0 ? subsetSize : 1);
 
+                // The LBP predictor indexes each node's subset bitmask with the 8-bit LBP
+                // code (subset[c >> 5], c in 0..255), and the SIMD back-ends load eight ints
+                // per node regardless of c. That requires subsetSize >= 8. maxCatCount is read
+                // straight from the cascade and drives subsetSize, so a value below 256 (or a
+                // negative one, which wraps to a huge size_t at runtime) leaves the subset
+                // array short and the predictor reads past it. Reject such cascades here.
+                if (data->featureType == SimdDetectionInfoFeatureLbp && subsetSize < 8)
+                    SIMD_EX("Invalid LBP cascade: maxCatCount out of range!");
+
                 Xml::Node * stages = cascade->FirstNode(Names::stages);
                 if (stages == NULL)
                     SIMD_EX("Invalid stages count!");
