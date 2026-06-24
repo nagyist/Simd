@@ -3779,7 +3779,7 @@ SIMD_API void SimdMaxFilterSquare5x5(const uint8_t * src, size_t srcStride, size
     else
 #endif
 #ifdef SIMD_SVE2_ENABLE
-    if (Sve2::Enable && width > 4 && (width - 4)*channelCount >= svcntb())
+    if (Sve2::Enable && width > 4 && (width - 4) * channelCount >= svcntb())
         Sve2::MaxFilterSquare5x5(src, srcStride, width, height, channelCount, dst, dstStride, threshold);
     else
 #endif
@@ -3993,6 +3993,11 @@ SIMD_API void SimdMedianFilterSquare5x5(const uint8_t * src, size_t srcStride, s
 #ifdef SIMD_SSE41_ENABLE
     if(Sse41::Enable && (width - 2)*channelCount >= Sse41::A)
         Sse41::MedianFilterSquare5x5(src, srcStride, width, height, channelCount, dst, dstStride);
+    else
+#endif
+#ifdef SIMD_SVE2_ENABLE
+    if (Sve2::Enable && width > 4 && (width - 4)*channelCount >= svcntb())
+        Sve2::MedianFilterSquare5x5(src, srcStride, width, height, channelCount, dst, dstStride);
     else
 #endif
 #ifdef SIMD_NEON_ENABLE

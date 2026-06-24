@@ -208,7 +208,7 @@ namespace Test
 #endif 
 
 #ifdef SIMD_SVE2_ENABLE
-        if (Simd::Sve2::Enable && TestSve2(options) && W >= svcntb() + 4)
+        if (Simd::Sve2::Enable && TestSve2(options) && W - 4 >= svcntb())
             result = result && LimitFilterAutoTest(FUNC_LM(Simd::Sve2::MaxFilterSquare5x5), FUNC_LM(SimdMaxFilterSquare5x5));
 #endif
 
@@ -512,6 +512,11 @@ namespace
         if (Simd::Avx512bw::Enable && TestAvx512bw(options) && W - 2 >= Simd::Avx512bw::A)
             result = result && ColorFilterAutoTest(FUNC_C(Simd::Avx512bw::MedianFilterSquare5x5), FUNC_C(SimdMedianFilterSquare5x5));
 #endif 
+
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options) && W >= svcntb() + 4)
+            result = result && ColorFilterAutoTest(FUNC_C(Simd::Sve2::MedianFilterSquare5x5), FUNC_C(SimdMedianFilterSquare5x5));
+#endif
 
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options) && W - 2 >= Simd::Neon::A)
