@@ -1,7 +1,7 @@
 /*
 * Simd Library (http://ermig1979.github.io/Simd).
 *
-* Copyright (c) 2011-2025 Yermalayeu Ihar.
+* Copyright (c) 2011-2026 Yermalayeu Ihar.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ namespace Simd
         _sizeA = p.M * p.K;
         _sizeB = 0;
         _sizeC = p.M * p.N;
-        _sizeD = 0;
+        _sizeS = 0;
         _aN = p.N;
     }
 

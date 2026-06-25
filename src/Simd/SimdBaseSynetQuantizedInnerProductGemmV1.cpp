@@ -1,7 +1,7 @@
 /*
 * Simd Library (http://ermig1979.github.io/Simd).
 *
-* Copyright (c) 2011-2025 Yermalayeu Ihar.
+* Copyright (c) 2011-2026 Yermalayeu Ihar.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -101,7 +101,7 @@ namespace Simd
 
         bool SynetQuantizedInnerProductGemmV1::Preferable(const QuantizedInnerProductParam& p)
         {
-            return true;
+            return p.M > 1;
         }
 
         void SynetQuantizedInnerProductGemmV1::SetAlgParam()
@@ -127,7 +127,7 @@ namespace Simd
             _sizeA = (p.typeA == SimdTensorData32f || p.K != a.aK) ? a.aM * a.aK : 0;
             _sizeB = p.constB ? 0 : a.macroK * a.macroN;
             _sizeC = a.macroN * a.aM;
-            _sizeD = 2048;
+            _sizeS = 2048;
             _aN = a.aN;
 
             a.bK = p.constB ? a.aK : a.macroK;
@@ -143,7 +143,7 @@ namespace Simd
             size += _sizeA * sizeof(uint8_t);
             size += _sizeB * sizeof(int8_t);
             size += _sizeC * sizeof(int32_t);
-            size += _sizeD * sizeof(int32_t);
+            size += _sizeS * sizeof(int32_t);
             return size;
         }
 
@@ -166,7 +166,8 @@ namespace Simd
             buf = Buffer(buf);
             uint8_t* bufA = _prepA ? Allocate<uint8_t>(buf, _sizeA) : (uint8_t*)A;
             int8_t* bufB = p.constB ? _b.data : Allocate<int8_t>(buf, _sizeB);
-            int32_t* bufC = Allocate<int32_t>(buf, _sizeC);
+            int32_t* bufC = _sizeC ? Allocate<int32_t>(buf, _sizeC) : (int32_t*)C;
+            int32_t* bufS = Allocate<int32_t>(buf, _sizeS);
             for (size_t j = 0; j < p.N; j += a.macroN)
             {
                 size_t macroN = Simd::Min(p.N, j + a.macroN) - j;
@@ -183,8 +184,8 @@ namespace Simd
                             _prepA(A + i * p.K * a.eA, _aScale, _aZero[0], p, a, macroM, p.K, bufA + offsA);
                         //if (i == 0 && _prepB && !p.constB)
                         //    _prepB(B + (p.transB ? j * p.K + k : k * p.N + j) * a.eB, p, a, macroN, macroK, bufB + offsB);
-                        //_gemm(bufA + offsA + k, p, a, macroM, macroN, macroK, k ? 1 : 0, bufB + offsB, bufC + offsC,
-                        //    k + macroK == p.K && (_sizeC || p.bias), _bias.data + j, _norm.data + j, _cZero[0], C + (i * p.N + j) * a.eC);
+                        _gemm(bufA + offsA + k, p, a, macroM, macroN, macroK, k ? 1 : 0, bufB + offsB, bufC + offsC, bufS,
+                            k + macroK == p.K && (_sizeC || p.bias), _bias.data + j, _norm.data + j, _cZero[0], C + (i * p.N + j) * a.eC);
                     }
                 }
             }

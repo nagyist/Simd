@@ -1,7 +1,7 @@
 /*
 * Simd Library (http://ermig1979.github.io/Simd).
 *
-* Copyright (c) 2011-2025 Yermalayeu Ihar.
+* Copyright (c) 2011-2026 Yermalayeu Ihar.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -129,7 +129,7 @@ namespace Simd
         Array32f _bScale, _norm; 
         float _aScale, _cScale;
         bool _a8u, _c8u;
-        size_t _sizeA, _sizeB, _sizeC, _sizeD, _elemA, _elemB, _elemC, _aN;
+        size_t _sizeA, _sizeB, _sizeC, _sizeS, _elemA, _elemB, _elemC, _aN;
     };
 
     //-------------------------------------------------------------------------------------------------
@@ -293,6 +293,13 @@ namespace Simd
         {
         public:
             SynetQuantizedInnerProductGemmV0(const QuantizedInnerProductParam& p);
+            virtual String Ext() const { return "AmxBf16"; }
+        };
+
+        class SynetQuantizedInnerProductGemmV1 : public Base::SynetQuantizedInnerProductGemmV1
+        {
+        public:
+            SynetQuantizedInnerProductGemmV1(const QuantizedInnerProductParam& p);
             virtual String Ext() const { return "AmxBf16"; }
         };
 
