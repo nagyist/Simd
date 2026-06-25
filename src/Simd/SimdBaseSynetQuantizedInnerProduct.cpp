@@ -41,7 +41,9 @@ namespace Simd
         _elemA = _a8u ? 1 : 4;
         _elemC = _c8u ? 1 : 4;
         _sizeA = p.M * p.K;
+        _sizeB = 0;
         _sizeC = p.M * p.N;
+        _sizeD = 0;
         _aN = p.N;
     }
 

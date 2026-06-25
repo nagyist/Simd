@@ -129,7 +129,7 @@ namespace Simd
         Array32f _bScale, _norm; 
         float _aScale, _cScale;
         bool _a8u, _c8u;
-        size_t _sizeA, _sizeB, _sizeC, _elemA, _elemB, _elemC, _aN;
+        size_t _sizeA, _sizeB, _sizeC, _sizeD, _elemA, _elemB, _elemC, _aN;
     };
 
     //-------------------------------------------------------------------------------------------------
@@ -205,7 +205,8 @@ namespace Simd
             };
 
             typedef void(*PrepPtr)(const uint8_t* src, float norm, uint8_t zero, const QuantizedInnerProductParam& p, const AlgParam& a, size_t rows, size_t cols, uint8_t* dst);
-            typedef void(*GemmPtr)(const uint8_t* A, const QuantizedInnerProductParam& p, const AlgParam& a, size_t M, size_t N, size_t K, int update, const int8_t* B, int32_t* buf, int post, const int32_t* bias, const float* norm, uint32_t zero, uint8_t* C);
+            typedef void(*GemmPtr)(const uint8_t* A, const QuantizedInnerProductParam& p, const AlgParam& a, size_t M, size_t N, size_t K, int update, 
+                const int8_t* B, int32_t* C, int32_t* buf, int post, const int32_t* bias, const float* norm, uint32_t zero, uint8_t* dst);
 
         protected:
             virtual void SetB(const int8_t* b);
