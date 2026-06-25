@@ -185,6 +185,39 @@ namespace Simd
 
         //-------------------------------------------------------------------------------------------------
 
+        class SynetQuantizedInnerProductGemmV1 : public SynetQuantizedInnerProduct
+        {
+        public:
+            SynetQuantizedInnerProductGemmV1(const QuantizedInnerProductParam& p);
+            virtual String Ext() const { return "Base"; }
+            virtual String Desc() const;
+            virtual size_t ExternalBufferSize() const;
+            virtual void Forward(const uint8_t* A, const uint8_t* B, uint8_t* buf, uint8_t* C);
+
+            static bool Preferable(const QuantizedInnerProductParam& p);
+
+            struct AlgParam
+            {
+                size_t F, microM, microN, microK;
+                size_t macroM, macroN, macroK;
+                size_t aM, aN, aK, eA, eB, eC, bK, cN;
+                int reorderType;
+            };
+
+            typedef void(*PrepPtr)(const uint8_t* src, float norm, uint8_t zero, const QuantizedInnerProductParam& p, const AlgParam& a, size_t rows, size_t cols, uint8_t* dst);
+            typedef void(*GemmPtr)(const uint8_t* A, const QuantizedInnerProductParam& p, const AlgParam& a, size_t M, size_t N, size_t K, int update, const int8_t* B, int32_t* buf, int post, const int32_t* bias, const float* norm, uint32_t zero, uint8_t* C);
+
+        protected:
+            virtual void SetB(const int8_t* b);
+            void SetAlgParam();
+
+            AlgParam _alg;
+            PrepPtr _prepA, _prepB;
+            GemmPtr _gemm;
+        };
+
+        //-------------------------------------------------------------------------------------------------
+
         void* SynetQuantizedInnerProductInit(size_t M, size_t N, size_t K, SimdTensorDataType typeA, SimdTensorDataType typeB, SimdTensorDataType typeC, SimdBool transB, SimdBool constB, SimdBool bias);
     }
 

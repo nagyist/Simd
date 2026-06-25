@@ -95,6 +95,8 @@ namespace Simd
         {
             std::stringstream desc;
             desc << Ext() << "::GemmV0";
+            if (_alg.reorderType)
+                desc << "-r";
             return desc.str();
         }
 
