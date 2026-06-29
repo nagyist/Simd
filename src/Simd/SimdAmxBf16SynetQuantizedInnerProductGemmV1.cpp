@@ -311,8 +311,224 @@ namespace Simd
 
         //-------------------------------------------------------------------------------------------------
 
-        template<Term8iType term> void QuantizedInnerProductGemmV1_Last2x2(const uint8_t* A0, const QipParam& p, const AlgParam& a,
-            size_t M, size_t N, size_t K, int update, const int8_t* B0, const __m512i* bias, const __m512* norm, const __m512i& zero, int32_t* sum0, int32_t* buf0, uint8_t* C)
+        template<Term8iType term, int flush, int M> static SIMD_INLINE void ApplyMx1(
+            uint8_t* ptr, int32_t* buf, const __m512i* sBias, const __m512* sNorm, const __m512i& dZero, __mmask32 tail = -1)
+        {
+            __m512i d0, d1;
+            if (M > 0) d0 = _mm512_add_epi32(_mm512_cvtps_epi32(_mm512_mul_ps(_mm512_cvtepi32_ps(_mm512_add_epi32(_mm512_loadu_si512(buf + 0), sBias[0])), sNorm[0])), dZero);
+            if (M > 1) d1 = _mm512_add_epi32(_mm512_cvtps_epi32(_mm512_mul_ps(_mm512_cvtepi32_ps(_mm512_add_epi32(_mm512_loadu_si512(buf + F), sBias[1])), sNorm[1])), dZero);
+            if (term == Term8iLast8u)
+            {
+                if (M > 1)
+                {
+                    _mm256_mask_storeu_epi8(ptr, tail, _mm512_castsi512_si256(PackI16ToU8(PackI32ToI16(d0, d1), K_ZERO)));
+                    if (flush) _mm_prefetch((const char*)ptr, _MM_HINT_NTA);
+                }
+                else
+                {
+                    _mm_mask_storeu_epi8(ptr, tail, _mm512_castsi512_si128(PackI16ToU8(PackI32ToI16(d0, K_ZERO), K_ZERO)));
+                    if (flush) _mm_prefetch((const char*)ptr, _MM_HINT_NTA);
+                }
+            }
+            else if (term == Term8iLast32f)
+            {
+                assert(0);
+            }
+        }
+        template<Term8iType term, int flush, int M, int N> static SIMD_INLINE void ApplyMxN(
+            uint8_t* ptr, size_t dP, int32_t* buf, const __m512i* sBias, const __m512* sNorm, const __m512i& dZero, __mmask32 tail = -1)
+        {
+            if (N > 0) ApplyMx1<term, flush, M>(ptr + 0 * dP, buf + 0 * DF, sBias, sNorm, dZero, tail);
+            if (N > 1) ApplyMx1<term, flush, M>(ptr + 1 * dP, buf + 1 * DF, sBias, sNorm, dZero, tail);
+            if (N > 2) ApplyMx1<term, flush, M>(ptr + 2 * dP, buf + 2 * DF, sBias, sNorm, dZero, tail);
+            if (N > 3) ApplyMx1<term, flush, M>(ptr + 3 * dP, buf + 3 * DF, sBias, sNorm, dZero, tail);
+            if (N > 4) ApplyMx1<term, flush, M>(ptr + 4 * dP, buf + 4 * DF, sBias, sNorm, dZero, tail);
+            if (N > 5) ApplyMx1<term, flush, M>(ptr + 5 * dP, buf + 5 * DF, sBias, sNorm, dZero, tail);
+            if (N > 6) ApplyMx1<term, flush, M>(ptr + 6 * dP, buf + 6 * DF, sBias, sNorm, dZero, tail);
+            if (N > 7) ApplyMx1<term, flush, M>(ptr + 7 * dP, buf + 7 * DF, sBias, sNorm, dZero, tail);
+        }
+
+        //--------------------------------------------------------------------------------------------------
+
+        template<Term8iType term, int flush, int N, int apply> SIMD_INLINE void QuantizedInnerProductGemmV1_Last1xMx2(
+            const uint8_t* A0, const QipParam& p, const AlgParam& a, size_t K, int update, const int8_t* B0, const __m512i* sBias, const __m512* sNorm,
+            const __m512i& dZero, int32_t* sum0, int32_t* buf1, int32_t* buf2, uint8_t* C, __mmask32 tailN)
+        {
+            int dC = int(p.N * a.eC), dA = (int)a.bK, dB = 16, strideB = 64;
+            int stepA = a.reorderType ? 1024 : 64, strideA = a.reorderType ? 64 : dA;
+            const uint8_t* A1 = A0 + 16 * dA;
+            const int8_t* B1 = B0 + a.bK * F;
+
+            if (update)
+            {
+                int dS = (int)a.cN, strideS = dS * 4;
+                if (N > 0) _tile_stream_loadd(0, sum0 + 0, strideS);
+                if (N > 1) _tile_stream_loadd(1, sum0 + F, strideS);
+                sum0 += 16 * dS;
+                if (N > 0) _tile_stream_loadd(2, sum0 + 0, strideS);
+                if (N > 1) _tile_stream_loadd(3, sum0 + F, strideS);
+            }
+            else
+            {
+                if (N > 0) _tile_zero(0);
+                if (N > 1) _tile_zero(1);
+                if (N > 0) _tile_zero(2);
+                if (N > 1) _tile_zero(3);
+            }
+
+            int K64 = (int)K - 64, aK64 = apply ? (8 * 64 / apply - 64) : 0, k = 0, i = 0;
+
+            _tile_stream_loadd(4, A0, strideA);
+            if (N > 0) _tile_loadd(6, B0 + k * dB, strideB);
+            for (; k < aK64; A1 += stepA)
+            {
+                if (N > 1) _tile_loadd(7, B1 + k * dB, strideB);
+                if (N > 0) _tile_dpbusd(0, 4, 6);
+                ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+                _tile_stream_loadd(5, A1, strideA);
+                if (N > 1) _tile_dpbusd(1, 4, 7);
+                ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+                A0 += stepA;
+                _tile_stream_loadd(4, A0, strideA);
+                if (N > 0) _tile_dpbusd(2, 5, 6);
+                ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+                k += 64;
+                if (N > 0) _tile_loadd(6, B0 + k * dB, strideB);
+                if (N > 1) _tile_dpbusd(3, 5, 7);
+                ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+            }
+            for (; k < K64; A1 += stepA)
+            {
+                if (N > 1) _tile_loadd(7, B1 + k * dB, strideB);
+                if (N > 0) _tile_dpbusd(0, 4, 6);
+                _tile_stream_loadd(5, A1, strideA);
+                if (N > 1) _tile_dpbusd(1, 4, 7);
+                A0 += stepA;
+                _tile_stream_loadd(4, A0, strideA);
+                if (N > 0) _tile_dpbusd(2, 5, 6);
+                k += 64;
+                if (N > 0) _tile_loadd(6, B0 + k * dB, strideB);
+                if (N > 1) _tile_dpbusd(3, 5, 7);
+            }
+            if (N > 1) _tile_loadd(7, B1 + k * dB, strideB);
+            _tile_stream_loadd(5, A1, strideA);
+            if (N > 0) _tile_dpbusd(0, 4, 6);
+            if (apply) ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+            if (N > 0) _tile_stored(0, buf2 + 0, DA);
+            if (N > 1) _tile_dpbusd(1, 4, 7);
+            if (apply) ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+            if (N > 1) _tile_stored(1, buf2 + F, DA);
+            buf2 += 16 * DF;
+            if (N > 0) _tile_dpbusd(2, 5, 6);
+            if (apply) ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+            if (N > 0) _tile_stored(2, buf2 + 0, DA);
+            if (N > 1) _tile_dpbusd(3, 5, 7);
+            if (apply) ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+            if (N > 1) _tile_stored(3, buf2 + F, DA);
+        }
+
+        template<Term8iType term, int flush, int N, int apply> SIMD_INLINE void QuantizedInnerProductGemmV1_Last1xMx1(
+            const uint8_t* A0, const QipParam& p, const AlgParam& a, size_t K, int update, const int8_t* B0, const __m512i* sBias, const __m512* sNorm,
+            const __m512i& dZero, int32_t* sum0, int32_t* buf1, int32_t* buf2, uint8_t* C, __mmask32 tailN)
+        {
+            int dC = int(p.N * a.eC), dA = (int)a.bK, dB = 16, strideB = 64;
+            int stepA = a.reorderType ? 1024 : 64, strideA = a.reorderType ? 64 : dA;
+            const uint8_t* A1 = A0 + 16 * dA;
+            const int8_t* B1 = B0 + a.bK * F;
+
+            if (update)
+            {
+                int dS = (int)a.cN, strideS = dS * 4;
+                if (N > 0) _tile_stream_loadd(0, sum0 + 0, strideS);
+                if (N > 1) _tile_stream_loadd(1, sum0 + F, strideS);
+            }
+            else
+            {
+                if (N > 0) _tile_zero(0);
+                if (N > 1) _tile_zero(1);
+            }
+
+            int K64 = (int)K - 64, aK64 = apply ? (8 * 64 / apply - 64) : 0, k = 0, i = 0;
+
+            _tile_stream_loadd(4, A0, strideA);
+            if (N > 0) _tile_loadd(6, B0 + k * dB, strideB);
+            for (; k < aK64;)
+            {
+                if (N > 1) _tile_loadd(7, B1 + k * dB, strideB);
+                if (N > 0) _tile_dpbusd(0, 4, 6);
+                ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+                ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+                k += 64;
+                if (N > 0) _tile_loadd(6, B0 + k * dB, strideB);
+                if (N > 1) _tile_dpbusd(1, 4, 7);
+                ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+                ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+                A0 += stepA;
+                _tile_stream_loadd(4, A0, strideA);
+            }
+            for (; k < K64;)
+            {
+                if (N > 1) _tile_loadd(7, B1 + k * dB, strideB);
+                if (N > 0) _tile_dpbusd(0, 4, 6);
+                k += 64;
+                if (N > 0) _tile_loadd(6, B0 + k * dB, strideB);
+                if (N > 1) _tile_dpbusd(1, 4, 7);
+                A0 += stepA;
+                _tile_stream_loadd(4, A0, strideA);
+            }
+            if (N > 1) _tile_loadd(7, B1 + k * dB, strideB);
+            if (N > 0) _tile_dpbusd(0, 4, 6);
+            if (apply) ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+            if (apply) ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+            if (N > 0) _tile_stored(0, buf2 + 0, DA);
+            if (N > 1) _tile_dpbusd(1, 4, 7);
+            if (apply) ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+            if (apply) ApplyMxN<term, flush, N, apply>(C + i * dC, dC, buf1 + i * DF, sBias, sNorm, dZero, tailN), i += apply;
+            if (N > 1) _tile_stored(1, buf2 + F, DA);
+        }
+
+        template<Term8iType term, int flush, int N, int apply> void QuantizedInnerProductGemmV1_LastNxMx2(const uint8_t* A0, const QipParam& p,
+            const AlgParam& a, size_t M, size_t K, int update, const int8_t* B0, const __m512i* sBias, const __m512* sNorm,
+            const __m512i& dZero, int32_t* sum0, int32_t* buf1, uint8_t* C, __mmask32 tailN)
+        {
+            int dS = (int)a.cN, dC = int(p.N * a.eC), dA = (int)a.bK;
+            int32_t* buf2 = buf1 + 1024;
+
+            size_t ci = 0, pi = 0;
+            QuantizedInnerProductGemmV1_Last1xMx2<term, flush, N, 0>(A0, p, a, K, update, B0,
+                sBias, sNorm, dZero, sum0, NULL, buf2, C, tailN), ci += 32;
+            for (; ci < M; pi = ci, ci += 32)
+            {
+                Swap(buf1, buf2);
+                size_t si = ci;
+                if (ci + 16 >= M)
+                {
+                    if (a.reorderType == 0)
+                        ci = Simd::Min(M - 16, ci);
+                    QuantizedInnerProductGemmV1_Last1xMx1<term, flush, N, apply>(A0 + ci * dA, p, a, K, update, B0,
+                        sBias, sNorm, dZero, sum0 + si * dS, buf1, buf2, C + pi * dC, tailN);
+                }
+                else
+                {
+                    if (a.reorderType == 0)
+                        ci = Simd::Min(M - 32, ci);
+                    QuantizedInnerProductGemmV1_Last1xMx2<term, flush, N, apply>(A0 + ci * dA, p, a, K, update, B0,
+                        sBias, sNorm, dZero, sum0 + si * dS, buf1, buf2, C + pi * dC, tailN);
+                }
+            }
+            uint8_t* C1 = C + pi * dC;
+            M -= pi;
+            size_t i = 0, M8 = M & (~7);
+            for (; i < M8; i += 8)
+                ApplyMxN<term, flush, N, 8>(C1 + i * dC, dC, buf2 + i * DF, sBias, sNorm, dZero, tailN);
+            for (; i < M; ++i)
+                ApplyMxN<term, flush, N, 1>(C1 + i * dC, dC, buf2 + i * DF, sBias, sNorm, dZero, tailN);
+        }
+
+        //--------------------------------------------------------------------------------------------------
+
+        template<Term8iType term, int flush> void QuantizedInnerProductGemmV1_Last2x2(const uint8_t* A0, const QipParam& p, const AlgParam& a,
+            size_t M, size_t N, size_t K, int update, const int8_t* B0, const __m512i* bias, const __m512* norm, const __m512i& zero, int32_t* sum0, int32_t* buf0, uint8_t* C, __mmask32 tailN)
         {
             int dS = (int)a.cN, dC = int(p.N * a.eC), dA = (int)a.bK, strideS = dS * 4, strideB = 64;
             int stepA = a.reorderType ? 1024 : 64, strideA = a.reorderType ? 64 : dA;
@@ -365,20 +581,19 @@ namespace Simd
             _tile_stored(3, buf1 + F, DA);
             if (term == Term8iLast8u)
             {
-                __mmask32 tailN = TailMask32(N);
-                size_t M8 = AlignLo(M, 8), i = 0;
+                size_t M8 = M & (~7), i = 0;
                 for (; i < M8; i += 8)
-                    Apply8u2x8(C + i * dC, dC, buf0 + i * DF, DF, bias, norm, zero, tailN);
+                    ApplyMxN<term, flush, 2, 8>(C + i * dC, dC, buf0 + i * DF, bias, norm, zero, tailN);
                 for (; i < M; ++i)
-                    Apply8u2(C + i * dC, buf0 + i * DF, bias, norm, zero, tailN);
+                    ApplyMxN<term, flush, 2, 1>(C + i * dC, dC, buf0 + i * DF, bias, norm, zero, tailN);
             }
             else if (term == Term8iLast32f)
             {
             }
         }
 
-        template<Term8iType term> void QuantizedInnerProductGemmV1_Last2x1(const uint8_t* A0, const QipParam& p, const AlgParam& a,
-            size_t M, size_t N, size_t K, int update, const int8_t* B0, const __m512i* bias, const __m512* norm, const __m512i& zero, int32_t* sum0, int32_t* buf0, uint8_t* C)
+        template<Term8iType term, int flush> void QuantizedInnerProductGemmV1_Last2x1(const uint8_t* A0, const QipParam& p, const AlgParam& a,
+            size_t M, size_t N, size_t K, int update, const int8_t* B0, const __m512i* bias, const __m512* norm, const __m512i& zero, int32_t* sum0, int32_t* buf0, uint8_t* C, __mmask32 tailN)
         {
             int dS = (int)a.cN, dC = int(p.N * a.eC), dA = (int)a.bK, strideS = dS * 4, strideB = 64;
             int stepA = a.reorderType ? 1024 : 64, strideA = a.reorderType ? 64 : dA;
@@ -417,20 +632,19 @@ namespace Simd
             _tile_stored(2, buf1 + 0, DA);
             if (term == Term8iLast8u)
             {
-                __mmask16 tailN = TailMask16(N);
-                size_t M8 = AlignLo(M, 8), i = 0;
+                size_t M8 = M & (~7), i = 0;
                 for (; i < M8; i += 8)
-                    Apply1x8<term>(C + i * dC, dC, buf0 + i * DF, DF, bias, norm, zero, tailN);
+                    ApplyMxN<term, flush, 1, 8>(C + i * dC, dC, buf0 + i * DF, bias, norm, zero, tailN);
                 for (; i < M; ++i)
-                    Apply1<term>(C + i * dC, buf0 + i * DF, bias, norm, zero, tailN);
+                    ApplyMxN<term, flush, 1, 1>(C + i * dC, dC, buf0 + i * DF, bias, norm, zero, tailN);
             }
             else if (term == Term8iLast32f)
             {
             }
         }
 
-        template<Term8iType term> void QuantizedInnerProductGemmV1_Last1x2(const uint8_t* A0, const QipParam& p, const AlgParam& a,
-            size_t M, size_t N, size_t K, int update, const int8_t* B0, const __m512i* bias, const __m512* norm, const __m512i& zero, int32_t* sum, int32_t* buf, uint8_t* C)
+        template<Term8iType term, int flush> void QuantizedInnerProductGemmV1_Last1x2(const uint8_t* A0, const QipParam& p, const AlgParam& a,
+            size_t M, size_t N, size_t K, int update, const int8_t* B0, const __m512i* bias, const __m512* norm, const __m512i& zero, int32_t* sum, int32_t* buf0, uint8_t* C, __mmask32 tailN)
         {
             int dS = (int)a.cN, dC = int(p.N * a.eC), dA = (int)a.bK, strideS = dS * 4, strideB = 64;
             int stepA = a.reorderType ? 1024 : 64, strideA = a.reorderType ? 64 : dA;
@@ -463,24 +677,23 @@ namespace Simd
             _tile_dpbusd(0, 4, 6);
             _tile_dpbusd(1, 4, 7);
 
-            _tile_stored(0, buf + 0, DA);
-            _tile_stored(1, buf + F, DA);
+            _tile_stored(0, buf0 + 0, DA);
+            _tile_stored(1, buf0 + F, DA);
             if (term == Term8iLast8u)
             {
-                __mmask32 tailN = TailMask32(N);
-                size_t M8 = AlignLo(M, 8), i = 0;
+                size_t M8 = M & (~7), i = 0;
                 for (; i < M8; i += 8)
-                    Apply8u2x8(C + i * dC, dC, buf + i * DF, DF, bias, norm, zero, tailN);
+                    ApplyMxN<term, flush, 2, 8>(C + i * dC, dC, buf0 + i * DF, bias, norm, zero, tailN);
                 for (; i < M; ++i)
-                    Apply8u2(C + i * dC, buf + i * DF, bias, norm, zero, tailN);
+                    ApplyMxN<term, flush, 2, 1>(C + i * dC, dC, buf0 + i * DF, bias, norm, zero, tailN);
             }
             else if (term == Term8iLast32f)
             {
             }
         }
 
-        template<Term8iType term> void QuantizedInnerProductGemmV1_Last1x1(const uint8_t* A0, const QipParam& p, const AlgParam& a,
-            size_t M, size_t N, size_t K, int update, const int8_t* B0, const __m512i* bias, const __m512* norm, const __m512i& zero, int32_t* sum, int32_t* buf, uint8_t* C)
+        template<Term8iType term, int flush> void QuantizedInnerProductGemmV1_Last1x1(const uint8_t* A0, const QipParam& p, const AlgParam& a,
+            size_t M, size_t N, size_t K, int update, const int8_t* B0, const __m512i* bias, const __m512* norm, const __m512i& zero, int32_t* sum, int32_t* buf0, uint8_t* C, __mmask32 tailN)
         {
             int dS = (int)a.cN, dC = int(p.N * a.eC), dA = (int)a.bK, strideS = dS * 4, strideB = 64;
             int stepA = a.reorderType ? 1024 : 64, strideA = a.reorderType ? 64 : dA;
@@ -501,15 +714,14 @@ namespace Simd
                 _tile_dpbusd(0, 4, 6);
             }
 
-            _tile_stored(0, buf + 0, DA);
+            _tile_stored(0, buf0 + 0, DA);
             if (term == Term8iLast8u)
             {
-                __mmask16 tailN = TailMask16(N);
-                size_t M8 = AlignLo(M, 8), i = 0;
+                size_t M8 = M & (~7), i = 0;
                 for (; i < M8; i += 8)
-                    Apply1x8<term>(C + i * dC, dC, buf + i * DF, DF, bias, norm, zero, tailN);
+                    ApplyMxN<term, flush, 1, 8>(C + i * dC, dC, buf0 + i * DF, bias, norm, zero, tailN);
                 for (; i < M; ++i)
-                    Apply1<term>(C + i * dC, buf + i * DF, bias, norm, zero, tailN);
+                    ApplyMxN<term, flush, 1, 1>(C + i * dC, dC, buf0 + i * DF, bias, norm, zero, tailN);
             }
             else if (term == Term8iLast32f)
             {
@@ -517,9 +729,11 @@ namespace Simd
         }
 
         typedef void(*QuantizedInnerProductGemmV1_LastPtr)(const uint8_t* A0, const QipParam& p, const AlgParam& a,
-            size_t M, size_t N, size_t K, int update, const int8_t* B0, const __m512i* bias, const __m512* norm, const __m512i& zero, int32_t* sum, int32_t* buf, uint8_t* C);
+            size_t M, size_t N, size_t K, int update, const int8_t* B0, const __m512i* bias, const __m512* norm, const __m512i& zero, int32_t* sum, int32_t* buf, uint8_t* C, __mmask32 tailN);
 
-        template<Term8iType term> void QuantizedInnerProductGemmV1_Last(const uint8_t* A, const QipParam& p, const AlgParam& a, size_t M, size_t N, size_t K,
+        //--------------------------------------------------------------------------------------------------
+
+        template<Term8iType term, int flush, int apply> void QuantizedInnerProductGemmV1_Last(const uint8_t* A, const QipParam& p, const AlgParam& a, size_t M, size_t N, size_t K,
             int update, const int8_t* B, int32_t* sum, int32_t* buf, const int32_t* bias, const float* norm, uint32_t zero, uint8_t* C)
         {
             size_t n = 32;
@@ -532,10 +746,10 @@ namespace Simd
                 bool avoidSrcOverflow = !(a.reorderType == 0 && p.K == a.aK);
                 if (avoidSrcOverflow)
                     m = AlignHi(m, 16), Mn = M - m;
-                QuantizedInnerProductGemmV1_LastPtr body_2 = QuantizedInnerProductGemmV1_Last2x2<term>;
-                QuantizedInnerProductGemmV1_LastPtr tail_2 = m > 16 ? QuantizedInnerProductGemmV1_Last2x2<term> : QuantizedInnerProductGemmV1_Last1x2<term>;
-                QuantizedInnerProductGemmV1_LastPtr body_1 = QuantizedInnerProductGemmV1_Last2x1<term>;
-                QuantizedInnerProductGemmV1_LastPtr tail_1 = m > 16 ? QuantizedInnerProductGemmV1_Last2x1<term> : QuantizedInnerProductGemmV1_Last1x1<term>;
+                QuantizedInnerProductGemmV1_LastPtr body_2 = QuantizedInnerProductGemmV1_Last2x2<term, flush>;
+                QuantizedInnerProductGemmV1_LastPtr tail_2 = m > 16 ? QuantizedInnerProductGemmV1_Last2x2<term, flush> : QuantizedInnerProductGemmV1_Last1x2<term, flush>;
+                QuantizedInnerProductGemmV1_LastPtr body_1 = QuantizedInnerProductGemmV1_Last2x1<term, flush>;
+                QuantizedInnerProductGemmV1_LastPtr tail_1 = m > 16 ? QuantizedInnerProductGemmV1_Last2x1<term, flush> : QuantizedInnerProductGemmV1_Last1x1<term, flush>;
                 SetTileConfFull();
                 for (size_t j = 0; j < N; j += DF)
                 {
@@ -545,20 +759,11 @@ namespace Simd
                     _norm[0] = _mm512_loadu_ps(norm + j + 0);
                     _norm[1] = _mm512_loadu_ps(norm + j + F);
                     size_t i = 0;
+                    __mmask32 tailN = TailMask32(dN);
                     if (dN > F)
-                    {
-                        for (; i < Mn; i += n)
-                            body_2(A + i * dA, p, a, n, dN, K, update, B, _bias, _norm, _zero, sum + i * dB, buf, C + i * dC);
-                        if (m)
-                            tail_2(A + Mn * dA, p, a, m, dN, K, update, B, _bias, _norm, _zero, sum + i * dB, buf, C + Mn * dC);
-                    }
+                        QuantizedInnerProductGemmV1_LastNxMx2<term, flush, 2, apply>(A + i * dA, p, a, M, K, update, B, _bias, _norm, _zero, sum + i * dB, buf, C + i * dC, tailN);
                     else
-                    {
-                        for (; i < Mn; i += n)
-                            body_1(A + i * dA, p, a, n, dN, K, update, B, _bias, _norm, _zero, sum + i * dB, buf, C + i * dC);
-                        if (m)
-                            tail_1(A + Mn * dA, p, a, m, dN, K, update, B, _bias, _norm, _zero, sum + i * dB, buf, C + Mn * dC);
-                    }
+                        QuantizedInnerProductGemmV1_LastNxMx2<term, flush, 1, apply>(A + i * dA, p, a, M, K, update, B, _bias, _norm, _zero, sum + i * dB, buf, C + i * dC, tailN);
                     B += a.bK * DF;
                     sum += DF;
                     C += DF * a.eC;
@@ -566,8 +771,8 @@ namespace Simd
             }
             else
             {
-                QuantizedInnerProductGemmV1_LastPtr tail_2 = m > 16 ? QuantizedInnerProductGemmV1_Last2x2<term> : QuantizedInnerProductGemmV1_Last1x2<term>;
-                QuantizedInnerProductGemmV1_LastPtr tail_1 = m > 16 ? QuantizedInnerProductGemmV1_Last2x1<term> : QuantizedInnerProductGemmV1_Last1x1<term>;
+                QuantizedInnerProductGemmV1_LastPtr tail_2 = m > 16 ? QuantizedInnerProductGemmV1_Last2x2<term, flush> : QuantizedInnerProductGemmV1_Last1x2<term, flush>;
+                QuantizedInnerProductGemmV1_LastPtr tail_1 = m > 16 ? QuantizedInnerProductGemmV1_Last2x1<term, flush> : QuantizedInnerProductGemmV1_Last1x1<term, flush>;
                 if (m > 16)
                     SetTileConf2x2(m, 32);
                 else
@@ -579,10 +784,11 @@ namespace Simd
                     _bias[1] = _mm512_loadu_si512((__m512i*)(bias + j) + 1);
                     _norm[0] = _mm512_loadu_ps(norm + j + 0);
                     _norm[1] = _mm512_loadu_ps(norm + j + F);
+                    __mmask32 tailN = TailMask32(dN);
                     if (dN > F)
-                        tail_2(A, p, a, m, dN, K, update, B, _bias, _norm, _zero, sum, buf, C);
+                        tail_2(A, p, a, m, dN, K, update, B, _bias, _norm, _zero, sum, buf, C, tailN);
                     else
-                        tail_1(A, p, a, m, dN, K, update, B, _bias, _norm, _zero, sum, buf, C);
+                        tail_1(A, p, a, m, dN, K, update, B, _bias, _norm, _zero, sum, buf, C, tailN);
                     B += a.bK * DF;
                     sum += DF;
                     C += DF * a.eC;
@@ -606,7 +812,17 @@ namespace Simd
             }
             _gemmBody = QuantizedInnerProductGemmV1_Body;
             if (p.typeC == SimdTensorData8u)
-                _gemmLast = QuantizedInnerProductGemmV1_Last<Term8iLast8u>;
+            {
+                size_t K = p.K - AlignLoAny(p.K, a.macroK);
+                if (K > 448)
+                    _gemmLast = QuantizedInnerProductGemmV1_Last<Term8iLast8u, 0, 1>;
+                else if (K > 192)
+                    _gemmLast = QuantizedInnerProductGemmV1_Last<Term8iLast8u, 0, 2>;
+                else if (K > 64)
+                    _gemmLast = QuantizedInnerProductGemmV1_Last<Term8iLast8u, 0, 4>;
+                else
+                    _gemmLast = QuantizedInnerProductGemmV1_Last<Term8iLast8u, 0, 8>;
+            }
             else
                 _gemmLast = NULL;
         }
