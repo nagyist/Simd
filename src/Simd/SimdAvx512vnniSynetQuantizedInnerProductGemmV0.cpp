@@ -240,13 +240,10 @@ namespace Simd
             : Avx512bw::SynetQuantizedInnerProductGemmV0(p)
         {
             SetAlgParam(F, 12, F * 2, 4, Base::AlgCacheL1(), Base::AlgCacheL2(), Base::AlgCacheL3());
-            if (p.M > 1)
-            {
-                if (p.typeC == SimdTensorData8u)
-                    _gemm = QuantizedInnerProductGemmV0_2<Term8iLast8u>;
-                else
-                    _gemm = NULL;// QuantizedInnerProductGemmV0_2<Term8iLast32f>;
-            }
+            if (p.typeC == SimdTensorData8u)
+                _gemm = QuantizedInnerProductGemmV0_2<Term8iLast8u>;
+            else
+                _gemm = NULL;// QuantizedInnerProductGemmV0_2<Term8iLast32f>;
         }
     }
 #endif

@@ -34,7 +34,6 @@ namespace Simd
         typedef Simd::QuantizedInnerProductParam QipParam;
         typedef Base::SynetQuantizedInnerProductGemmV1::AlgParam AlgParam;
         typedef Base::SynetQuantizedInnerProductGemmV1::PrepPtr PrepPtr;
-        typedef Base::SynetQuantizedInnerProductGemmV1::GemmPtr GemmPtr;
 
         //-----------------------------------------------------------------------------------------
 
@@ -85,7 +84,8 @@ namespace Simd
             : SynetQuantizedInnerProduct(p)
             , _prepA(0)
             , _prepB(0)
-            , _gemm(0)
+            , _gemmBody(0)
+            , _gemmLast(0)
         {
             _prepB = SynetQuantizedInnerProductGemmV1_PrepB_8i;
         }
@@ -184,8 +184,11 @@ namespace Simd
                             _prepA(A + i * p.K * a.eA, _aScale, _aZero[0], p, a, macroM, p.K, bufA + offsA);
                         //if (i == 0 && _prepB && !p.constB)
                         //    _prepB(B + (p.transB ? j * p.K + k : k * p.N + j) * a.eB, p, a, macroN, macroK, bufB + offsB);
-                        _gemm(bufA + offsA + k, p, a, macroM, macroN, macroK, k ? 1 : 0, bufB + offsB, bufC + offsC, bufS,
-                            k + macroK == p.K && (_sizeC || p.bias), _bias.data + j, _norm.data + j, _cZero[0], C + (i * p.N + j) * a.eC);
+                        if (k + macroK == p.K)
+                            _gemmLast(bufA + offsA + k, p, a, macroM, macroN, macroK, k ? 1 : 0, bufB + offsB, bufC + offsC, bufS,
+                                _bias.data + j, _norm.data + j, _cZero[0], C + (i * p.N + j) * a.eC);
+                        else
+                            _gemmBody(bufA + offsA + k, p, a, macroM, macroN, macroK, k ? 1 : 0, bufB + offsB, bufC + offsC);
                     }
                 }
             }
