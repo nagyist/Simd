@@ -27,6 +27,7 @@
 #include "Simd/SimdBase.h"
 #include "Simd/SimdCopy.h"
 #include "Simd/SimdTile.h"
+#include "Simd/SimdSet.h"
 
 namespace Simd
 {
@@ -40,7 +41,7 @@ namespace Simd
 
         //-------------------------------------------------------------------------------------------------
 
-        static void QuantizedInnerProductGemmV1_PrepA_8u(const uint8_t* src, float norm, uint8_t zero, const QipParam& p, const AlgParam& a, size_t M, size_t, uint8_t* dst)
+        static void QuantizedInnerProductGemmV1_PrepA_8uD(const uint8_t* src, float norm, uint8_t zero, const QipParam& p, const AlgParam& a, size_t M, size_t, uint8_t* dst)
         {
             size_t KA = Simd::AlignLo(p.K, A);
             __mmask64 srcTail = TailMask64(p.K - KA), dstTail = TailMask64(a.aK - KA);
@@ -56,13 +57,47 @@ namespace Simd
             }
         }
 
+        static void QuantizedInnerProductGemmV1_PrepA_8uR(const uint8_t* src, float norm, uint8_t zero, const QipParam& p, const AlgParam& a, size_t M, size_t, uint8_t* dst)
+        {
+            size_t K = p.K, K64 = AlignLo(K, 64);
+            __mmask64 srcMask = TailMask64(K - K64);
+            __m512i _zero = _mm512_set1_epi8(zero);
+            for (size_t i = 0; i < M; i += 16)
+            {
+                size_t m = Min(i + 16, M) - i;
+                size_t k = 0;
+                for (; k < K64; k += 64)
+                {
+                    size_t j = 0;
+                    for (; j < m; ++j)
+                        Avx512bw::Copy(src + k + j * K, dst + j * 64 + k * 16);
+                    for (; j < 16; ++j)
+                        SetZero(dst + j * 64 + k * 16, _mm512_setzero_si512());
+                }
+                if (K64 < K)
+                {
+                    size_t j = 0;
+                    for (; j < m; ++j)
+                        Avx512bw::Copy(src + k + j * K, dst + j * 64 + k * 16, srcMask);
+                    for (; j < 16; ++j)
+                        SetZero(dst + j * 64 + k * 16, _mm512_setzero_si512());
+                }
+                src += K * 16;
+                dst += a.aK * 16;
+            }
+        }
+
         //-------------------------------------------------------------------------------------------------
 
         SynetQuantizedInnerProductGemmV1::SynetQuantizedInnerProductGemmV1(const QuantizedInnerProductParam& p)
             : Base::SynetQuantizedInnerProductGemmV1(p)
         {
             SetAlgParam();
-            _prepA = QuantizedInnerProductGemmV1_PrepA_8u;
+            const AlgParam& a = _alg;
+            if(a.reorderType)
+                _prepA = QuantizedInnerProductGemmV1_PrepA_8uR;
+            else
+                _prepA = QuantizedInnerProductGemmV1_PrepA_8uD;
             //if (p.typeC == SimdTensorData8u)
             //    _gemm = QuantizedInnerProductGemmV0_2<Term8iLast8u>;
             //else
