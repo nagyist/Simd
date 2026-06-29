@@ -209,7 +209,7 @@ namespace Simd
             typedef void(*GemmBodyPtr)(const uint8_t* A, const QuantizedInnerProductParam& p, const AlgParam& a, 
                 size_t M, size_t N, size_t K, int update, const int8_t* B, int32_t* C);
             typedef void(*GemmLastPtr)(const uint8_t* A, const QuantizedInnerProductParam& p, const AlgParam& a, size_t M, size_t N, size_t K, 
-                int update, const int8_t* B, int32_t* C, int32_t* buf, const int32_t* bias, const float* norm, uint32_t zero, uint8_t* dst);
+                int update, const int8_t* B, int32_t* sum, int32_t* buf, const int32_t* bias, const float* norm, uint32_t zero, uint8_t* C);
 
         protected:
             virtual void SetB(const int8_t* b);

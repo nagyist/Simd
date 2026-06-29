@@ -101,7 +101,7 @@ namespace Simd
 
         bool SynetQuantizedInnerProductGemmV1::Preferable(const QuantizedInnerProductParam& p)
         {
-            return p.M > 1;
+            return p.M > 1 && 1;
         }
 
         void SynetQuantizedInnerProductGemmV1::SetAlgParam()
