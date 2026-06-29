@@ -91,6 +91,13 @@ class SimdConan(ConanFile):
 
     def package_id(self):
         del self.info.options.opencv
+        # OpenCV is an optional build-time, headers-only dependency (libs=False) gated
+        # behind the SIMD_OPENCV_ENABLE macro that the consumer defines. Simd itself is
+        # never compiled against OpenCV (generate() forces SIMD_OPENCV=False), so the
+        # binary artifact is identical regardless of it and it must not contribute to
+        # the package id.
+        if "opencv" in self.info.requires:
+            self.info.requires.remove("opencv")
 
     def layout(self):
         cmake_layout(self, src_folder=".")
