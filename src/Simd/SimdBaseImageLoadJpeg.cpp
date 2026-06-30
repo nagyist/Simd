@@ -914,6 +914,9 @@ namespace Simd
             }
             z->img_h_max = h_max;
             z->img_v_max = v_max;
+            for (int i = 0; i < z->img_n; ++i)
+                if (h_max % z->img_comp[i].h || v_max % z->img_comp[i].v)
+                    return JpegLoadError("bad sampling factor", "Corrupt JPEG");
             z->img_mcu_w = h_max * 8;
             z->img_mcu_h = v_max * 8;
             z->img_mcu_x = (z->img_x + z->img_mcu_w - 1) / z->img_mcu_w;
