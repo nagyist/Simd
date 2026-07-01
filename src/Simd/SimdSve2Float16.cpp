@@ -101,9 +101,8 @@ namespace Simd
                 SquaredDifferenceSum16f(a + i, b + i, body16, body32, body32, sum0, sum1);
             if (i < size)
             {
-                size_t tail = size - i;
-                SquaredDifferenceSum16f(a + i, b + i, svwhilelt_b16(size_t(0), tail),
-                    svwhilelt_b32(size_t(0), (tail + 1) / 2), svwhilelt_b32(size_t(0), tail / 2), sum0, sum1);
+                const svbool_t tail16 = svwhilelt_b16(i, size);
+                SquaredDifferenceSum16f(a + i, b + i, tail16, body32, body32, sum0, sum1);
             }
             *sum = svaddv_f32(body32, svadd_f32_x(body32, sum0, sum1));
         }
