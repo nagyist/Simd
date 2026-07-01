@@ -1405,6 +1405,9 @@ namespace Simd
             // compute interleaved mcu info
             z->img_h_max = h_max;
             z->img_v_max = v_max;
+            for (i = 0; i < s->img_n; ++i)
+                if (h_max % z->img_comp[i].h || v_max % z->img_comp[i].v)
+                    return JpegLoadError("bad sampling factor", "Corrupt JPEG");
             z->img_mcu_w = h_max * 8;
             z->img_mcu_h = v_max * 8;
             // these sizes can't be more than 17 bits

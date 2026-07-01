@@ -61,7 +61,7 @@ namespace Simd
             {
                 while (first != last)
                 {
-                    if (!isspace(*first))
+                    if (!isspace(static_cast<unsigned char>(*first)))
                         return first;
                     ++first;
                 }
@@ -150,6 +150,16 @@ namespace Simd
             const char * rect = "rect";
         }
 
+        // Feature rectangles read from the cascade XML are turned into raw integral-image
+        // pointers by UpdateFeaturePtrs, which only addresses the window [0, origWinSize]
+        // and clamps nothing at run time (SumElemPtr merely asserts). A corner outside the
+        // window therefore produces an out-of-bounds pointer that is dereferenced for every
+        // detection position. Reject such rects at the load boundary.
+        SIMD_INLINE bool DetectionWinCorner(int col, int row, const Size & win)
+        {
+            return col >= 0 && row >= 0 && col <= win.x && row <= win.y;
+        }
+
         void * DetectionLoadStringXml(char * xml, const char * path)
         {
             static const float THRESHOLD_EPS = 1e-5f;
@@ -209,6 +219,15 @@ namespace Simd
                 int subsetSize = (data->ncategories + 31) / 32;
                 int nodeStep = 3 + (data->ncategories > 0 ? subsetSize : 1);
 
+                // The LBP predictor indexes each node's subset bitmask with the 8-bit LBP
+                // code (subset[c >> 5], c in 0..255), and the SIMD back-ends load eight ints
+                // per node regardless of c. That requires subsetSize >= 8. maxCatCount is read
+                // straight from the cascade and drives subsetSize, so a value below 256 (or a
+                // negative one, which wraps to a huge size_t at runtime) leaves the subset
+                // array short and the predictor reads past it. Reject such cascades here.
+                if (data->featureType == SimdDetectionInfoFeatureLbp && subsetSize < 8)
+                    SIMD_EX("Invalid LBP cascade: maxCatCount out of range!");
+
                 Xml::Node * stages = cascade->FirstNode(Names::stages);
                 if (stages == NULL)
                     SIMD_EX("Invalid stages count!");
@@ -234,8 +253,8 @@ namespace Simd
 
                         Data::DTree tree;
                         tree.nodeCount = (int)internalNodes.size() / nodeStep;
-                        if (tree.nodeCount > 1)
-                            data->isStumpBased = false;
+                        if (tree.nodeCount != 1 || leafValues.size() != 2)
+                            SIMD_EX("Invalid cascade: a weak classifier must be a stump with one node and two leaf values!");
                         data->classifiers.push_back(tree);
 
                         data->nodes.reserve(data->nodes.size() + tree.nodeCount);
@@ -293,6 +312,23 @@ namespace Simd
                         feature.tilted = featureNode->FirstNode(Names::tilted) && Xml::GetValue<int>(featureNode, Names::tilted) != 0;
                         if (feature.tilted)
                             data->hasTilted = true;
+                        for (int j = 0; j < rectIndex; ++j)
+                        {
+                            if (feature.rect[j].weight == 0.0f)
+                                continue;
+                            const Data::Rect & r = feature.rect[j].r;
+                            bool ok = feature.tilted
+                                ? DetectionWinCorner(r.x, r.y, data->origWinSize)
+                                    && DetectionWinCorner(r.x - r.height, r.y + r.height, data->origWinSize)
+                                    && DetectionWinCorner(r.x + r.width, r.y + r.width, data->origWinSize)
+                                    && DetectionWinCorner(r.x + r.width - r.height, r.y + r.width + r.height, data->origWinSize)
+                                : DetectionWinCorner(r.x, r.y, data->origWinSize)
+                                    && DetectionWinCorner(r.x + r.width, r.y, data->origWinSize)
+                                    && DetectionWinCorner(r.x, r.y + r.height, data->origWinSize)
+                                    && DetectionWinCorner(r.x + r.width, r.y + r.height, data->origWinSize);
+                            if (!ok)
+                                SIMD_EX("Invalid HAAR feature: rect outside detection window!");
+                        }
                         data->haarFeatures.push_back(feature);
                     }
                 }
@@ -311,10 +347,23 @@ namespace Simd
                         feature.rect.y = values[1];
                         feature.rect.width = values[2];
                         feature.rect.height = values[3];
+                        if (feature.rect.width <= 0 || feature.rect.height <= 0 ||
+                            !DetectionWinCorner(feature.rect.x, feature.rect.y, data->origWinSize) ||
+                            !DetectionWinCorner(feature.rect.x + feature.rect.width * 3, feature.rect.y + feature.rect.height * 3, data->origWinSize))
+                            SIMD_EX("Invalid LBP feature: rect outside detection window!");
                         if (feature.rect.width*feature.rect.height > 256)
                             data->canInt16 = false;
                         data->lbpFeatures.push_back(feature);
                     }
+                }
+
+                size_t featureCount = data->featureType == SimdDetectionInfoFeatureHaar
+                    ? data->haarFeatures.size() : data->lbpFeatures.size();
+                for (size_t i = 0; i < data->nodes.size(); ++i)
+                {
+                    int featureIdx = data->nodes[i].featureIdx;
+                    if (featureIdx < 0 || (size_t)featureIdx >= featureCount)
+                        SIMD_EX("Invalid cascade node: feature index out of range!");
                 }
             }
             catch (...)
