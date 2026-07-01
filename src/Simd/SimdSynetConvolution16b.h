@@ -404,14 +404,14 @@ namespace Simd
                 size_t dstC, size_t dstS, size_t nK, int zero, const uint16_t* weight, float* sum);
 
             typedef void(*LastConvPtr)(const uint16_t* src, const ConvParam& p, const AlgParam& a, const int* srcOffs, size_t dstC, size_t dstS, size_t nK, int zero,
-                const uint16_t* weight, float* sum, const float* bias, const float* params, const int* dstMask, const int* dstOffs, uint8_t* dst);
+                const uint16_t* weight, float* sum, float * buf, const float* bias, const float* params, const int* dstMask, const int* dstOffs, uint8_t* dst);
 
         protected:
             void SetAlgParam();
             virtual void SetWeight(const float* weight);
 
-            void ForwardSingle(const uint8_t* src, uint16_t* buf, float* sum, uint8_t* dst);
-            void ForwardBatch(const uint8_t* src, uint16_t* buf, float* sum, uint8_t* dst);
+            void ForwardSingle(const uint8_t* src, uint16_t* tmp, float* sum, float* buf, uint8_t* dst);
+            void ForwardBatch(const uint8_t* src, uint16_t* tmp, float* sum, float* buf, uint8_t* dst);
 
             AlgParam _alg;
             Array32i _srcOffs, _dstMask, _nK, _maBufOffs, _maSumOffs, _miDstOffs;

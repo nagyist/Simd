@@ -233,6 +233,11 @@ namespace Test
             result = result && Gemm32fNNAutoTest(FUNC_GEMM32F(Simd::Avx512bw::Gemm32fNN), FUNC_GEMM32F(SimdGemm32fNN));
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && Gemm32fNNAutoTest(FUNC_GEMM32F(Simd::Sve2::Gemm32fNN), FUNC_GEMM32F(SimdGemm32fNN));
+#endif
+
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))
             result = result && Gemm32fNNAutoTest(FUNC_GEMM32F(Simd::Neon::Gemm32fNN), FUNC_GEMM32F(SimdGemm32fNN));
@@ -305,6 +310,11 @@ namespace Test
         if (Simd::Avx512bw::Enable && TestAvx512bw(options))
             result = result && Gemm32fNTAutoTest(FUNC_GEMM32F(Simd::Avx512bw::Gemm32fNT), FUNC_GEMM32F(SimdGemm32fNT));
 #endif 
+
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && Gemm32fNTAutoTest(FUNC_GEMM32F(Simd::Sve2::Gemm32fNT), FUNC_GEMM32F(SimdGemm32fNT));
+#endif
 
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))

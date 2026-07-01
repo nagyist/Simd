@@ -1,7 +1,7 @@
 /*
 * Tests for Simd Library (http://ermig1979.github.io/Simd).
 *
-* Copyright (c) 2011-2025 Yermalayeu Ihar.
+* Copyright (c) 2011-2026 Yermalayeu Ihar.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -280,6 +280,11 @@ namespace Test
             result = result && DetectionDetectAutoTest(0, 0, 0, FUNC_D(Simd::Neon::DetectionHaarDetect32fp), FUNC_D(SimdDetectionHaarDetect32fp));
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && DetectionDetectAutoTest(0, 0, 0, FUNC_D(Simd::Sve2::DetectionHaarDetect32fp), FUNC_D(SimdDetectionHaarDetect32fp));
+#endif
+
         return result;
     }
 
@@ -308,6 +313,11 @@ namespace Test
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))
             result = result && DetectionDetectAutoTest(0, 1, 0, FUNC_D(Simd::Neon::DetectionHaarDetect32fi), FUNC_D(SimdDetectionHaarDetect32fi));
+#endif
+
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && DetectionDetectAutoTest(0, 1, 0, FUNC_D(Simd::Sve2::DetectionHaarDetect32fi), FUNC_D(SimdDetectionHaarDetect32fi));
 #endif
 
         return result;
@@ -340,6 +350,11 @@ namespace Test
             result = result && DetectionDetectAutoTest(1, 0, 0, FUNC_D(Simd::Neon::DetectionLbpDetect32fp), FUNC_D(SimdDetectionLbpDetect32fp));
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && DetectionDetectAutoTest(1, 0, 0, FUNC_D(Simd::Sve2::DetectionLbpDetect32fp), FUNC_D(SimdDetectionLbpDetect32fp));
+#endif
+
         return result;
     }
 
@@ -368,6 +383,11 @@ namespace Test
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))
             result = result && DetectionDetectAutoTest(1, 1, 0, FUNC_D(Simd::Neon::DetectionLbpDetect32fi), FUNC_D(SimdDetectionLbpDetect32fi));
+#endif
+
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && DetectionDetectAutoTest(1, 1, 0, FUNC_D(Simd::Sve2::DetectionLbpDetect32fi), FUNC_D(SimdDetectionLbpDetect32fi));
 #endif
 
         return result;
@@ -400,6 +420,11 @@ namespace Test
             result = result && DetectionDetectAutoTest(1, 0, 1, FUNC_D(Simd::Neon::DetectionLbpDetect16ip), FUNC_D(SimdDetectionLbpDetect16ip));
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && DetectionDetectAutoTest(1, 0, 1, FUNC_D(Simd::Sve2::DetectionLbpDetect16ip), FUNC_D(SimdDetectionLbpDetect16ip));
+#endif
+
         return result;
     }
 
@@ -428,6 +453,11 @@ namespace Test
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))
             result = result && DetectionDetectAutoTest(1, 1, 1, FUNC_D(Simd::Neon::DetectionLbpDetect16ii), FUNC_D(SimdDetectionLbpDetect16ii));
+#endif
+
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && DetectionDetectAutoTest(1, 1, 1, FUNC_D(Simd::Sve2::DetectionLbpDetect16ii), FUNC_D(SimdDetectionLbpDetect16ii));
 #endif
 
         return result;

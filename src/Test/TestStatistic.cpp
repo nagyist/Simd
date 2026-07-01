@@ -233,6 +233,11 @@ namespace Test
             result = result && GetMomentsAutoTest(FUNC_M(Simd::Avx512bw::GetMoments), FUNC_M(SimdGetMoments));
 #endif 
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && GetMomentsAutoTest(FUNC_M(Simd::Sve2::GetMoments), FUNC_M(SimdGetMoments));
+#endif
+
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))
             result = result && GetMomentsAutoTest(FUNC_M(Simd::Neon::GetMoments), FUNC_M(SimdGetMoments));
@@ -346,6 +351,11 @@ namespace Test
             result = result && GetObjectMomentsAutoTest(FUNC_GOM(Simd::Avx512bw::GetObjectMoments), FUNC_GOM(SimdGetObjectMoments));
 #endif 
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && GetObjectMomentsAutoTest(FUNC_GOM(Simd::Sve2::GetObjectMoments), FUNC_GOM(SimdGetObjectMoments));
+#endif
+
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))
             result = result && GetObjectMomentsAutoTest(FUNC_GOM(Simd::Neon::GetObjectMoments), FUNC_GOM(SimdGetObjectMoments));
@@ -432,6 +442,11 @@ namespace Test
             result = result && GetSumsAutoTest(FUNC3(Simd::Avx512bw::GetRowSums), FUNC3(SimdGetRowSums), true);
 #endif 
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && GetSumsAutoTest(FUNC3(Simd::Sve2::GetRowSums), FUNC3(SimdGetRowSums), true);
+#endif
+
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))
             result = result && GetSumsAutoTest(FUNC3(Simd::Neon::GetRowSums), FUNC3(SimdGetRowSums), true);
@@ -476,6 +491,11 @@ namespace Test
             result = result && GetSumsAutoTest(FUNC3(Simd::Neon::GetColSums), FUNC3(SimdGetColSums), false);
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && GetSumsAutoTest(FUNC3(Simd::Sve2::GetColSums), FUNC3(SimdGetColSums), false);
+#endif
+
 #ifdef SIMD_HVX_ENABLE
         if (Simd::Hvx::Enable && TestHvx(options) && W >= Simd::Hvx::A)
         {
@@ -516,6 +536,11 @@ namespace Test
             result = result && GetSumsAutoTest(FUNC3(Simd::Neon::GetAbsDyRowSums), FUNC3(SimdGetAbsDyRowSums), true);
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && GetSumsAutoTest(FUNC3(Simd::Sve2::GetAbsDyRowSums), FUNC3(SimdGetAbsDyRowSums), true);
+#endif
+
 #ifdef SIMD_HVX_ENABLE
         if (Simd::Hvx::Enable && TestHvx(options) && W >= Simd::Hvx::A)
         {
@@ -554,6 +579,11 @@ namespace Test
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))
             result = result && GetSumsAutoTest(FUNC3(Simd::Neon::GetAbsDxColSums), FUNC3(SimdGetAbsDxColSums), false);
+#endif
+
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && GetSumsAutoTest(FUNC3(Simd::Sve2::GetAbsDxColSums), FUNC3(SimdGetAbsDxColSums), false);
 #endif
 
 #ifdef SIMD_HVX_ENABLE
@@ -741,6 +771,11 @@ namespace Test
             result = result && SumAutoTest(FUNC4(Simd::Neon::SobelDxAbsSum), FUNC4(SimdSobelDxAbsSum));
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && SumAutoTest(FUNC4(Simd::Sve2::SobelDxAbsSum), FUNC4(SimdSobelDxAbsSum));
+#endif
+
         return result;
     }
 
@@ -771,6 +806,11 @@ namespace Test
             result = result && SumAutoTest(FUNC4(Simd::Neon::SobelDyAbsSum), FUNC4(SimdSobelDyAbsSum));
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && SumAutoTest(FUNC4(Simd::Sve2::SobelDyAbsSum), FUNC4(SimdSobelDyAbsSum));
+#endif
+
         return result;
     }
 
@@ -795,6 +835,11 @@ namespace Test
         if (Simd::Avx512bw::Enable && TestAvx512bw(options))
             result = result && SumAutoTest(FUNC4(Simd::Avx512bw::LaplaceAbsSum), FUNC4(SimdLaplaceAbsSum));
 #endif 
+
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && SumAutoTest(FUNC4(Simd::Sve2::LaplaceAbsSum), FUNC4(SimdLaplaceAbsSum));
+#endif
 
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))

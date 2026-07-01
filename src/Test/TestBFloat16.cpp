@@ -112,6 +112,11 @@ namespace Test
             result = result && Float32ToBFloat16AutoTest(FUNC_SB(Simd::AmxBf16::Float32ToBFloat16), FUNC_SB(SimdFloat32ToBFloat16));
 #endif 
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && Float32ToBFloat16AutoTest(FUNC_SB(Simd::Sve2::Float32ToBFloat16), FUNC_SB(SimdFloat32ToBFloat16));
+#endif
+
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))
             result = result && Float32ToBFloat16AutoTest(FUNC_SB(Simd::Neon::Float32ToBFloat16), FUNC_SB(SimdFloat32ToBFloat16));
@@ -170,6 +175,8 @@ namespace Test
     {
         bool result = true;
 
+        //result = result && BFloat16ToFloat32AutoTest(1, f1, f2);
+        //result = result && BFloat16ToFloat32AutoTest(E * O + 1, f1, f2);
         result = result && BFloat16ToFloat32AutoTest(W * H, f1, f2);
         result = result && BFloat16ToFloat32AutoTest(W * H - 1, f1, f2);
 

@@ -42,16 +42,56 @@
 <h5>New features</h5>
 <ul>
  <li>Support of SVE2 extension (ARM/ARM64 platform).</li>
+ <li>SVE2 optimizations of function Float32ToBFloat16.</li>
  <li>SVE2 optimizations of function BFloat16ToFloat32.</li>
+ <li>SVE2 optimizations of function Float32ToUint8.</li>
+ <li>SVE2 optimizations of function Float32ToFloat16.</li>
+ <li>SVE2 optimizations of function Float16ToFloat32.</li>
+ <li>SVE2 optimizations of function SquaredDifferenceSum16f.</li>
+ <li>SVE2 optimizations of function NeuralConvert.</li>
+ <li>SVE2 optimizations of function NeuralProductSum.</li>
+ <li>SVE2 optimizations of function NeuralAddVectorMultipliedByValue.</li>
+ <li>SVE2 optimizations of function NeuralAddVector.</li>
+ <li>SVE2 optimizations of function NeuralAddValue.</li>
+ <li>SVE2 optimizations of function NeuralDerivativeSigmoid.</li>
+ <li>SVE2 optimizations of function NeuralDerivativeTanh.</li>
+ <li>SVE2 optimizations of function NeuralDerivativeRelu.</li>
+ <li>SVE2 optimizations of function NeuralPow.</li>
+ <li>SVE2 optimizations of function NeuralUpdateWeights.</li>
+ <li>SVE2 optimizations of function NeuralAdaptiveGradientUpdate.</li>
+ <li>SVE2 optimizations of function NeuralAddConvolution2x2Forward.</li>
+ <li>SVE2 optimizations of function NeuralAddConvolution3x3Forward.</li>
+ <li>SVE2 optimizations of function NeuralAddConvolution4x4Forward.</li>
+ <li>SVE2 optimizations of function NeuralAddConvolution5x5Forward.</li>
+ <li>SVE2 optimizations of function NeuralAddConvolution2x2Backward.</li>
+ <li>SVE2 optimizations of function NeuralAddConvolution3x3Backward.</li>
+ <li>SVE2 optimizations of function NeuralAddConvolution4x4Backward.</li>
+ <li>SVE2 optimizations of function NeuralAddConvolution5x5Backward.</li>
+ <li>SVE2 optimizations of function NeuralAddConvolution2x2Sum.</li>
+ <li>SVE2 optimizations of function NeuralAddConvolution3x3Sum.</li>
+ <li>SVE2 optimizations of function NeuralAddConvolution4x4Sum.</li>
+ <li>SVE2 optimizations of function NeuralAddConvolution5x5Sum.</li>
+ <li>SVE2 optimizations of function NeuralConvolutionForward.</li>
+ <li>SVE2 optimizations of function NeuralPooling1x1Max3x3.</li>
+ <li>SVE2 optimizations of function NeuralPooling2x2Max2x2.</li>
+ <li>SVE2 optimizations of function NeuralPooling2x2Max3x3.</li>
+ <li>SVE2 optimizations of function GaussianBlurInit.</li>
+ <li>SVE2 optimizations of function GaussianBlur3x3.</li>
  <li>SVE2 optimizations of function CosineDistance16f.</li>
  <li>SVE2 optimizations of function CosineDistancesMxNa16f.</li>
  <li>SVE2 optimizations of function CosineDistancesMxNp16f.</li>
  <li>SVE2 optimizations of function CosineDistance32f.</li>
+ <li>SVE2 optimizations of function Gemm32fNN.</li>
+ <li>SVE2 optimizations of function Gemm32fNT.</li>
  <li>SVE2 optimizations of function DescrIntEncode32f.</li>
+ <li>SVE2 optimizations of function DescrIntEncode16f.</li>
+ <li>SVE2 optimizations of function DescrIntDecode32f.</li>
+ <li>SVE2 optimizations of function DescrIntDecode16f.</li>
  <li>SVE2 optimizations of function DescrIntCosineDistance.</li>
  <li>SVE2 optimizations of function DescrIntCosineDistancesMxNa.</li>
  <li>SVE2 optimizations of function DescrIntCosineDistancesMxNp.</li>
  <li>SVE2 optimizations of function BgrToBgra.</li>
+ <li>SVE2 optimizations of function RgbToBgra.</li>
  <li>SVE2 optimizations of function BgraToBgr.</li>
  <li>SVE2 optimizations of function BgraToRgb.</li>
  <li>SVE2 optimizations of function BgraToRgba.</li>
@@ -68,23 +108,45 @@
  <li>SVE2 optimizations of function BgrToHsl.</li>
  <li>SVE2 optimizations of function BgrToHsv.</li>
  <li>SVE2 optimizations of function BgrToLab.</li>
+ <li>SVE2 optimizations of function GrayToBgr.</li>
+ <li>SVE2 optimizations of function GrayToBgra.</li>
+ <li>SVE2 optimizations of function GrayToY.</li>
+ <li>SVE2 optimizations of function ReduceColor2x2.</li>
+ <li>SVE2 optimizations of function ReduceGray2x2.</li>
+ <li>SVE2 optimizations of function ReduceGray3x3.</li>
+ <li>SVE2 optimizations of function ReduceGray4x4.</li>
+ <li>SVE2 optimizations of function ReduceGray5x5.</li>
  <li>SVE2 optimizations of function BgrToYuv420pV2.</li>
  <li>SVE2 optimizations of function BgrToYuv422pV2.</li>
  <li>SVE2 optimizations of function BgrToYuv444pV2.</li>
  <li>SVE2 optimizations of function Reorder16bit.</li>
  <li>SVE2 optimizations of function Reorder32bit.</li>
  <li>SVE2 optimizations of function Reorder64bit.</li>
+ <li>SVE2 optimizations of function SegmentationChangeIndex.</li>
+ <li>SVE2 optimizations of function SegmentationFillSingleHoles.</li>
+ <li>SVE2 optimizations of function SegmentationPropagate2x2.</li>
+ <li>SVE2 optimizations of function SegmentationShrinkRegion.</li>
  <li>SVE2 optimizations of function BayerToBgr.</li>
  <li>SVE2 optimizations of function BayerToBgra.</li>
  <li>SVE2 optimizations of function BgraToBayer.</li>
  <li>SVE2 optimizations of function BgrToBayer.</li>
  <li>SVE2 optimizations of function Base64Decode.</li>
  <li>SVE2 optimizations of function Base64Encode.</li>
+ <li>SVE2 optimizations of function GetRowSums.</li>
+ <li>SVE2 optimizations of function GetColSums.</li>
+ <li>SVE2 optimizations of function GetAbsDyRowSums.</li>
+ <li>SVE2 optimizations of function GetAbsDxColSums.</li>
+ <li>SVE2 optimizations of function GetMoments.</li>
+ <li>SVE2 optimizations of function GetObjectMoments.</li>
  <li>SVE2 optimizations of function ValueSum.</li>
  <li>SVE2 optimizations of function SquareSum.</li>
  <li>SVE2 optimizations of function ValueSquareSum.</li>
  <li>SVE2 optimizations of function ValueSquareSums.</li>
  <li>SVE2 optimizations of function CorrelationSum.</li>
+ <li>SVE2 optimizations of function SquaredDifferenceSum.</li>
+ <li>SVE2 optimizations of function SquaredDifferenceSumMasked.</li>
+ <li>SVE2 optimizations of function SquaredDifferenceSum32f.</li>
+ <li>SVE2 optimizations of function SquaredDifferenceKahanSum32f.</li>
  <li>SVE2 optimizations of function ConditionalCount8u.</li>
  <li>SVE2 optimizations of function ConditionalCount16i.</li>
  <li>SVE2 optimizations of function ConditionalSum.</li>
@@ -92,6 +154,23 @@
  <li>SVE2 optimizations of function ConditionalSquareGradientSum.</li>
  <li>SVE2 optimizations of function ConditionalFill.</li>
  <li>SVE2 optimizations of function AbsSecondDerivativeHistogram.</li>
+ <li>SVE2 optimizations of function HistogramMasked.</li>
+ <li>SVE2 optimizations of function HistogramConditional.</li>
+ <li>SVE2 optimizations of function MedianFilterRhomb3x3.</li>
+ <li>SVE2 optimizations of function MedianFilterRhomb5x5.</li>
+ <li>SVE2 optimizations of function MedianFilterSquare3x3.</li>
+ <li>SVE2 optimizations of function MedianFilterSquare5x5.</li>
+ <li>SVE2 optimizations of function MinFilterSquare5x5.</li>
+ <li>SVE2 optimizations of function SobelDx.</li>
+ <li>SVE2 optimizations of function SobelDxAbs.</li>
+ <li>SVE2 optimizations of function SobelDxAbsSum.</li>
+ <li>SVE2 optimizations of function SobelDy.</li>
+ <li>SVE2 optimizations of function SobelDyAbs.</li>
+ <li>SVE2 optimizations of function SobelDyAbsSum.</li>
+ <li>SVE2 optimizations of function HogDirectionHistograms.</li>
+ <li>SVE2 optimizations of function HogExtractFeatures.</li>
+ <li>SVE2 optimizations of function HogDeinterleave.</li>
+ <li>SVE2 optimizations of function HogFilterSeparable.</li>
  <li>SVE2 optimizations of function AddFeatureDifference.</li>
  <li>SVE2 optimizations of function AlphaBlending.</li>
  <li>SVE2 optimizations of function AlphaBlending2x.</li>
@@ -113,8 +192,30 @@
  <li>SVE2 optimizations of function ContourMetrics.</li>
  <li>SVE2 optimizations of function ContourMetricsMasked.</li>
  <li>SVE2 optimizations of function ContourAnchors.</li>
+ <li>SVE2 optimizations of function Laplace.</li>
+ <li>SVE2 optimizations of function LaplaceAbs.</li>
+ <li>SVE2 optimizations of function LaplaceAbsSum.</li>
+ <li>SVE2 optimizations of function LbpEstimate.</li>
+ <li>SVE2 optimizations of function MaxFilterSquare3x3.</li>
+ <li>SVE2 optimizations of function MaxFilterSquare5x5.</li>
+ <li>SVE2 optimizations of function MinFilterSquare3x3.</li>
+ <li>SVE2 optimizations of function MeanFilter3x3.</li>
+ <li>SVE2 optimizations of function MidpointFilterSquare3x3.</li>
+ <li>SVE2 optimizations of function MidpointFilterSquare5x5.</li>
+ <li>SVE2 optimizations of function DetectionHaarDetect32fp.</li>
+ <li>SVE2 optimizations of function DetectionHaarDetect32fi.</li>
+ <li>SVE2 optimizations of function DetectionLbpDetect32fp.</li>
+ <li>SVE2 optimizations of function DetectionLbpDetect32fi.</li>
+ <li>SVE2 optimizations of function DetectionLbpDetect16ip.</li>
+ <li>SVE2 optimizations of function DetectionLbpDetect16ii.</li>
+ <li>SVE2 optimizations of function Fill32f.</li>
+ <li>SVE2 optimizations of function FillBgr.</li>
+ <li>SVE2 optimizations of function FillBgra.</li>
+ <li>SVE2 optimizations of function FillPixel.</li>
  <li>Support of RISCV/RISCV64 platform.</li>
  <li>Base implementation, AMX-BF16 optimizations of class SynetQuantizedConvolutionNhwcGemmV1.</li>
+ <li>Base implementation, AMX-BF16 optimizations of class SynetQuantizedConvolutionNhwcSpecV1.</li>
+ <li>Base implementation, AMX-BF16 optimizations of class SynetQuantizedInnerProductGemmV1.</li>
 </ul>
 <h5>Improving</h5>
 <ul>
@@ -140,9 +241,43 @@
 <h5>Renaming</h5>
 <ul>
  <li>Class SynetQuantizedConvolutionNhwcGemm to SynetQuantizedConvolutionNhwcGemmV0.</li>
+ <li>Class SynetQuantizedInnerProductGemmNN to SynetQuantizedInnerProductGemmV0.</li>
 </ul>
 
 <h4>Test framework</h4>
+<h5>New features</h5>
+<ul>
+ <li>Tests for verifying functionality of SVE2 optimizations of functions GetMoments and GetObjectMoments.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function LaplaceAbs.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function LbpEstimate.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function MaxFilterSquare3x3.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function MaxFilterSquare5x5.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function MinFilterSquare3x3.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function MedianFilterRhomb5x5.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function MedianFilterSquare5x5.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function MeanFilter3x3.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function MidpointFilterSquare3x3.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function MidpointFilterSquare5x5.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function SobelDxAbs.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function SobelDy.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function SobelDxAbsSum.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function SobelDyAbs.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function SobelDyAbsSum.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function NeuralConvert.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function NeuralAddValue.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function NeuralUpdateWeights.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function NeuralAddConvolution5x5Forward.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function NeuralAddConvolution5x5Sum.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function NeuralConvolutionForward.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function ReduceColor2x2.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function RgbToBgra.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function SegmentationFillSingleHoles.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function SegmentationPropagate2x2.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function SegmentationShrinkRegion.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function SquaredDifferenceSumMasked.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function SquaredDifferenceSum32f.</li>
+ <li>Tests for verifying functionality of SVE2 optimizations of function SquaredDifferenceKahanSum32f.</li>
+</ul>
 <h5>Bug fixing</h5>
 <ul>
  <li>Crash in Error in MakeAutoTests.</li>

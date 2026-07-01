@@ -138,6 +138,11 @@ namespace Test
             result = result && AnyToBgraAutoTest(View::Gray8, FUNC(Simd::Avx512bw::GrayToBgra), FUNC(SimdGrayToBgra));
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && AnyToBgraAutoTest(View::Gray8, FUNC(Simd::Sve2::GrayToBgra), FUNC(SimdGrayToBgra));
+#endif
+
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options) && W >= Simd::Neon::A)
             result = result && AnyToBgraAutoTest(View::Gray8, FUNC(Simd::Neon::GrayToBgra), FUNC(SimdGrayToBgra));
@@ -167,6 +172,11 @@ namespace Test
         if (Simd::Avx512bw::Enable && TestAvx512bw(options))
             result = result && AnyToBgraAutoTest(View::Rgb24, FUNC(Simd::Avx512bw::RgbToBgra), FUNC(SimdRgbToBgra));
 #endif 
+
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && AnyToBgraAutoTest(View::Rgb24, FUNC(Simd::Sve2::RgbToBgra), FUNC(SimdRgbToBgra));
+#endif
 
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options) && W >= Simd::Neon::A)

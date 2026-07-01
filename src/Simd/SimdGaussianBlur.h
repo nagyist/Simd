@@ -1,7 +1,7 @@
 /*
 * Simd Library (http://ermig1979.github.io/Simd).
 *
-* Copyright (c) 2011-2024 Yermalayeu Ihar.
+* Copyright (c) 2011-2026 Yermalayeu Ihar.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -144,5 +144,22 @@ namespace Simd
         void* GaussianBlurInit(size_t width, size_t height, size_t channels, const float* sigma, const float* epsilon);
     }
 #endif //SIMD_NEON_ENABLE
+
+#ifdef SIMD_SVE2_ENABLE    
+    namespace Sve2
+    {
+#ifdef SIMD_NEON_ENABLE
+        class GaussianBlurDefault : public Neon::GaussianBlurDefault
+#else
+        class GaussianBlurDefault : public Base::GaussianBlurDefault
+#endif
+        {
+        public:
+            GaussianBlurDefault(const BlurParam& param);
+        };
+
+        void* GaussianBlurInit(size_t width, size_t height, size_t channels, const float* sigma, const float* epsilon);
+    }
+#endif //SIMD_SVE2_ENABLE
 }
 #endif//__SimdGaussianBlur_h__

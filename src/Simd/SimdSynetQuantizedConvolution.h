@@ -250,6 +250,52 @@ namespace Simd
 
         //------------------------------------------------------------------------------------------------
 
+        class SynetQuantizedConvolutionNhwcSpecV1 : public SynetQuantizedConvolution
+        {
+        public:
+            SynetQuantizedConvolutionNhwcSpecV1(const ConvParam& p);
+            virtual String Ext() const { return "Base"; }
+            virtual String Desc() const;
+            virtual size_t InternalBufferSize() const;
+            virtual size_t ExternalBufferSize() const;
+            virtual void Forward(const uint8_t* src, uint8_t* buf, uint8_t* dst);
+
+            static bool Preferable(const ConvParam& p);
+
+            struct AlgParam
+            {
+                size_t F, microD, microS, microC;
+                size_t batch, srcC, srcH, srcW, dstC, K;
+                size_t padV, padH, padE, gapV, gapH, kA;
+                size_t macroD, macroH, macroC;
+                size_t bufS, bufD, elem;
+            };
+
+            typedef void(*PreprocessPtr)(const uint8_t* src, uint8_t zero, const ConvParam& p, const AlgParam& a, size_t dyBeg, size_t dyEnd, int end, uint8_t* dst);
+
+            typedef void(*BodyConvPtr)(const uint8_t* src, const ConvParam& p, const AlgParam& a, const int* srcOffs,
+                size_t dstC, size_t dstS, size_t nK, int update, const int8_t* weight, int32_t* sum);
+
+            typedef void(*LastConvPtr)(const uint8_t* src, const ConvParam& p, const AlgParam& a, const int* srcOffs, size_t dstC, size_t dstS, 
+                size_t nK, int update, const int8_t* weight, int32_t* sum, int32_t* buf, const int32_t* sBias, const float* sNorm, int32_t iZero, float iScale,
+                const float* params, float dNorm, int32_t dZero, const int* dstMask, const int* dstOffs, uint8_t* dst);
+
+        protected:
+            void SetAlgParam();
+            virtual void SetWeight(const int8_t* weight);
+            void ForwardSingle(const uint8_t* src, uint8_t* tmp, int32_t* sum, int32_t* buf, uint8_t* dst);
+            void ForwardBatch(const uint8_t* src, uint8_t* tmp, int32_t* sum, int32_t* buf, uint8_t* dst);
+
+
+            AlgParam _alg;
+            Array32i _srcOffs, _dstMask, _nK, _maBufOffs, _maSumOffs, _miDstOffs;
+            PreprocessPtr _preprocess;
+            BodyConvPtr _bodyConv;
+            LastConvPtr _lastConv;
+        };
+
+        //------------------------------------------------------------------------------------------------
+
         class SynetQuantizedConvolutionNhwcDepthwiseV0 : public SynetQuantizedConvolution
         {
         public:
@@ -639,16 +685,27 @@ namespace Simd
         public:
             SynetQuantizedConvolutionNhwcGemmV1(const ConvParam& p);
 
-            virtual String Ext() const { return _alg.microK == 64 ? "AmxBf16" : "Avx512vnni"; }
+            virtual String Ext() const { return "AmxBf16"; }
         };
 
         //------------------------------------------------------------------------------------------------
+        
         class SynetQuantizedConvolutionNhwcSpecV0 : public Avx512vnni::SynetQuantizedConvolutionNhwcSpecV0
         {
         public:
             SynetQuantizedConvolutionNhwcSpecV0(const ConvParam& p);
 
             virtual String Ext() const { return _alg.microC == 64 ? "AmxBf16" : "Avx512vnni"; }
+        };
+
+        //------------------------------------------------------------------------------------------------
+
+        class SynetQuantizedConvolutionNhwcSpecV1 : public Base::SynetQuantizedConvolutionNhwcSpecV1
+        {
+        public:
+            SynetQuantizedConvolutionNhwcSpecV1(const ConvParam& p);
+
+            virtual String Ext() const { return "AmxBf16"; }
         };
 
         //------------------------------------------------------------------------------------------------

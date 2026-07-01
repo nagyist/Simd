@@ -118,6 +118,11 @@ namespace Test
             result = result && ReduceColorAutoTest(FUNC_RC(Simd::Avx512bw::ReduceColor2x2), FUNC_RC(SimdReduceColor2x2));
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && ReduceColorAutoTest(FUNC_RC(Simd::Sve2::ReduceColor2x2), FUNC_RC(SimdReduceColor2x2));
+#endif
+
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))
             result = result && ReduceColorAutoTest(FUNC_RC(Simd::Neon::ReduceColor2x2), FUNC_RC(SimdReduceColor2x2));
@@ -227,6 +232,11 @@ namespace Test
             result = result && ReduceGrayAutoTest(FUNC_RG1(Simd::Avx512bw::ReduceGray2x2), FUNC_RG1(SimdReduceGray2x2));
 #endif
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+            result = result && ReduceGrayAutoTest(FUNC_RG1(Simd::Sve2::ReduceGray2x2), FUNC_RG1(SimdReduceGray2x2));
+#endif
+
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))
             result = result && ReduceGrayAutoTest(FUNC_RG1(Simd::Neon::ReduceGray2x2), FUNC_RG1(SimdReduceGray2x2));
@@ -269,6 +279,14 @@ namespace Test
         }
 #endif 
 
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options))
+        {
+            result = result && ReduceGrayAutoTest(FUNC_RG2(Simd::Sve2::ReduceGray3x3, true), FUNC_RG2(SimdReduceGray3x3, true));
+            result = result && ReduceGrayAutoTest(FUNC_RG2(Simd::Sve2::ReduceGray3x3, false), FUNC_RG2(SimdReduceGray3x3, false));
+        }
+#endif
+
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))
         {
@@ -300,6 +318,11 @@ namespace Test
 #ifdef SIMD_AVX512BW_ENABLE
         if (Simd::Avx512bw::Enable && TestAvx512bw(options) && W > Simd::Avx512bw::DA)
             result = result && ReduceGrayAutoTest(FUNC_RG1(Simd::Avx512bw::ReduceGray4x4), FUNC_RG1(SimdReduceGray4x4));
+#endif
+
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options) && W > svcntb())
+            result = result && ReduceGrayAutoTest(FUNC_RG1(Simd::Sve2::ReduceGray4x4), FUNC_RG1(SimdReduceGray4x4));
 #endif
 
 #ifdef SIMD_NEON_ENABLE
@@ -343,6 +366,14 @@ namespace Test
             result = result && ReduceGrayAutoTest(FUNC_RG2(Simd::Avx512bw::ReduceGray5x5, false), FUNC_RG2(SimdReduceGray5x5, false));
         }
 #endif 
+
+#ifdef SIMD_SVE2_ENABLE
+        if (Simd::Sve2::Enable && TestSve2(options) && W > svcntb())
+        {
+            result = result && ReduceGrayAutoTest(FUNC_RG2(Simd::Sve2::ReduceGray5x5, true), FUNC_RG2(SimdReduceGray5x5, true));
+            result = result && ReduceGrayAutoTest(FUNC_RG2(Simd::Sve2::ReduceGray5x5, false), FUNC_RG2(SimdReduceGray5x5, false));
+        }
+#endif
 
 #ifdef SIMD_NEON_ENABLE
         if (Simd::Neon::Enable && TestNeon(options))

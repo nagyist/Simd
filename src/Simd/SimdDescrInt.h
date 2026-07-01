@@ -1,7 +1,7 @@
 /*
 * Simd Library (http://ermig1979.github.io/Simd).
 *
-* Copyright (c) 2011-2024 Yermalayeu Ihar.
+* Copyright (c) 2011-2026 Yermalayeu Ihar.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -283,6 +283,10 @@ namespace Simd
         //-------------------------------------------------------------------------------------------------
 
         Base::DescrInt::Encode32fPtr GetEncode32f(size_t depth);
+        Base::DescrInt::Encode16fPtr GetEncode16f(size_t depth);
+
+        Base::DescrInt::Decode32fPtr GetDecode32f(size_t depth);
+        Base::DescrInt::Decode16fPtr GetDecode16f(size_t depth);
 
         Base::DescrInt::CosineDistancePtr GetCosineDistance(size_t depth);
         Base::DescrInt::MacroCosineDistancesDirectPtr GetMacroCosineDistancesDirect(size_t depth);
